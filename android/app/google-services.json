@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "844490310796",
+    "project_id": "fshare-e20a4",
+    "storage_bucket": "fshare-e20a4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:844490310796:android:b9f2c3fc75546427a1a7a9",
+        "android_client_info": {
+          "package_name": "com.example.fs"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-MnxKfWoxF925Ve8pHVRzNEq9HOIAh-E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

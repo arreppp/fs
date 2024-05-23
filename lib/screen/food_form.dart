@@ -27,6 +27,8 @@ class _FoodFormState extends State<FoodForm> {
   final Completer<GoogleMapController> _controller = Completer();
   String? _address;
   LatLng? curLocation;
+  DateTime? selectedDate;
+  TimeOfDay? selectedTime;
 
   @override
   void initState() {
@@ -84,10 +86,36 @@ class _FoodFormState extends State<FoodForm> {
     }
   }
 
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2101),
+    );
+
+    if (pickedDate != null && pickedDate != selectedDate)
+      setState(() {
+        selectedDate = pickedDate;
+      });
+  }
+
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (pickedTime != null && pickedTime != selectedTime)
+      setState(() {
+        selectedTime = pickedTime;
+      });
+  }
+
   Future<void> _uploadData() async {
-    if (imageUrl.isEmpty || selectedLocation == null) {
+    if (imageUrl.isEmpty || selectedLocation == null || selectedDate == null || selectedTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Please upload an image and select a location'),
+        content: Text('Please upload an image, select a location, date, and time'),
       ));
       return;
     }
@@ -99,10 +127,19 @@ class _FoodFormState extends State<FoodForm> {
         String? username = user.displayName;
         String email = user.email!;
 
+        DateTime expiryDateTime = DateTime(
+          selectedDate!.year,
+          selectedDate!.month,
+          selectedDate!.day,
+          selectedTime!.hour,
+          selectedTime!.minute,
+        );
+
         await FirebaseFirestore.instance.collection('foods').add({
           'name': foodNameController.text,
           'quantity': foodQuantityController.text,
           'detail': foodDetailController.text,
+          'expiry_time': expiryDateTime,
           'image': imageUrl,
           'location': GeoPoint(selectedLocation!.latitude, selectedLocation!.longitude),
           'username': username,
@@ -114,6 +151,10 @@ class _FoodFormState extends State<FoodForm> {
         foodDetailController.clear();
         latController.clear();
         lngController.clear();
+        setState(() {
+          selectedDate = null;
+          selectedTime = null;
+        });
 
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Food added successfully'),
@@ -189,6 +230,22 @@ class _FoodFormState extends State<FoodForm> {
               controller: foodDetailController,
               decoration: InputDecoration(labelText: 'Detail'),
               maxLines: null,
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => _selectDate(context),
+              child: Text('Select Expiry Date'),
+            ),
+            ElevatedButton(
+              onPressed: () => _selectTime(context),
+              child: Text('Select Expiry Time'),
+            ),
+            SizedBox(height: 20),
+            Text(
+              selectedDate == null ? 'No Date Chosen!' : 'Picked Date: ${selectedDate!.toLocal()}'.split(' ')[0],
+            ),
+            Text(
+              selectedTime == null ? 'No Time Chosen!' : 'Picked Time: ${selectedTime!.format(context)}',
             ),
             SizedBox(height: 20),
             Text('Pick Location:'),

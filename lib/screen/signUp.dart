@@ -34,7 +34,10 @@ class _SignUpPageState extends State<SignUpPage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text("SignUp"),
+        title: Text("FoodShare",style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+      ),
+        centerTitle: true, // Center the title
+
       ),
       body: Center(
         child: Padding(

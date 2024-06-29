@@ -1,152 +1,95 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fs/screen/mapView.dart';
+import 'package:fs/screen/notiPage.dart';
+import 'package:fs/screen/profile.dart';
 import 'food_form.dart';
 import 'foodDetail.dart';
 import 'login.dart';
+import 'bottomNav.dart';  // Import the bottom navigation bar
 
-class HomePage extends StatelessWidget {
-  HomePage({Key? key}) : super(key: key) {
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  int _selectedIndex = 0;
+  late Stream<QuerySnapshot> _stream;
+  final CollectionReference _reference = FirebaseFirestore.instance.collection('foods');
+
+  @override
+  void initState() {
+    super.initState();
     _stream = _reference.snapshots();
   }
 
-  CollectionReference _reference = FirebaseFirestore.instance.collection('foods');
-  late Stream<QuerySnapshot> _stream;
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     User? user = FirebaseAuth.instance.currentUser;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('FoodShare'),
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            Stack(
-              children: [
-                UserAccountsDrawerHeader(
-                  accountName: Text(user?.displayName ?? 'No username'),
-                  accountEmail: Text(user?.email ?? 'No email'),
-                  // currentAccountPicture: CircleAvatar(
-                  //   child: Icon(Icons.account_circle, size: 50),
-                  // ),
-                  decoration: BoxDecoration(
-                    color: Colors.deepPurple,
-                  ),
-                ),
-                Positioned(
-                  bottom: 25,
-                  right: 8,
-                  child: IconButton(
-                    icon: Icon(Icons.settings, color: Colors.white),
-                    onPressed: () {
-                      // Navigator.push(
-                      //   context,
-                      //   MaterialPageRoute(builder: (context) => SettingsPage()),
-                      // );
-                    },
-                  ),
-                ),
-              ],
-            ),
-            ListTile(
-              leading: Icon(Icons.home),
-              title: Text('Home'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.map),
-              title: Text('Map View'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            Divider(),
-            ListTile(
-              leading: Icon(Icons.share_outlined),
-              title: Text('Your Shared'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.fastfood_sharp),
-              title: Text('Add Food'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => FoodForm()),
-                );
-              },
-            ),
-            Column(
-              children: <Widget>[
-                Divider(),
-                ListTile(
-                  leading: Icon(Icons.exit_to_app),
-                  title: Text('Sign Out'),
-                  onTap: () async {
-                    await FirebaseAuth.instance.signOut();
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoginPage()),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-      body: StreamBuilder<QuerySnapshot>(
+    final List<Widget> _pages = [
+      StreamBuilder<QuerySnapshot>(
         stream: _stream,
         builder: (BuildContext context, AsyncSnapshot snapshot) {
-          // Check error
           if (snapshot.hasError) {
             return Center(child: Text('Some error occurred ${snapshot.error}'));
           }
 
-          // Check if data arrived
           if (snapshot.hasData) {
-            // Get the data
             QuerySnapshot querySnapshot = snapshot.data;
             List<QueryDocumentSnapshot> documents = querySnapshot.docs;
-
-            // Convert the documents to Maps
             List<Map> items = documents.map((e) => e.data() as Map).toList();
 
-            // Display the list
-            return ListView.builder(
-              itemCount: items.length,
-              itemBuilder: (BuildContext context, int index) {
-                // Get the item at this index
-                Map thisItem = items[index];
-
-                return FoodCard(data: thisItem, docId: documents[index].id);
-              },
+            return CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.all(16.0),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                          (BuildContext context, int index) {
+                        Map thisItem = items[index];
+                        return FoodCard(data: thisItem, docId: documents[index].id);
+                      },
+                      childCount: items.length,
+                    ),
+                  ),
+                ),
+              ],
             );
           }
 
-          // Show loader
           return Center(child: CircularProgressIndicator());
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => FoodForm()),
-          );
-        },
-        child: const Icon(Icons.add),
-        shape: CircleBorder(),
+      MapViewPage(),
+      FoodForm(),
+      NotificationsPage(),
+      ProfilePage(),
+    ];
+
+    return Scaffold(
+      appBar: _selectedIndex == 0
+          ? AppBar(
+        title: Text('FoodShare', style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true, // Center the title
+        automaticallyImplyLeading: false, // Remove back button
+
+
+      )
+          : null,
+      body: _pages[_selectedIndex],
+      bottomNavigationBar: BottomNavBar(
+        selectedIndex: _selectedIndex,
+        onItemTapped: _onItemTapped,
       ),
     );
   }
@@ -165,27 +108,21 @@ class FoodCard extends StatefulWidget {
 class _FoodCardState extends State<FoodCard> {
   late DateTime expiryTime;
   late Duration remainingTime;
-  late Timer timer;
+  Timer? timer;
 
   @override
   void initState() {
     super.initState();
-
-    // Retrieve and set the expiry time
     Timestamp timestamp = widget.data['expiry_time'];
     expiryTime = timestamp.toDate();
-
-    // Calculate the remaining time
     remainingTime = expiryTime.difference(DateTime.now());
 
-    // Start the countdown timer
     timer = Timer.periodic(Duration(seconds: 1), (Timer t) {
       setState(() {
         remainingTime = expiryTime.difference(DateTime.now());
         if (remainingTime.isNegative) {
-          // Remove the item from Firestore
           FirebaseFirestore.instance.collection('foods').doc(widget.docId).delete();
-          timer.cancel();
+          timer?.cancel();
         }
       });
     });
@@ -193,7 +130,7 @@ class _FoodCardState extends State<FoodCard> {
 
   @override
   void dispose() {
-    timer.cancel();
+    timer?.cancel();
     super.dispose();
   }
 
@@ -238,9 +175,8 @@ class _FoodCardState extends State<FoodCard> {
                 Text(
                   'by $username',
                   style: TextStyle(
-                    fontWeight: FontWeight.normal,
-                    fontSize: 16,
-                  ),
+                      fontWeight: FontWeight.normal,
+                      fontSize: 16),
                 ),
               ],
             ),

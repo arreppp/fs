@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:fs/screen/food_form.dart';
 import 'package:fs/screen/home.dart';
 import 'package:fs/screen/login.dart';
+import 'package:fs/screen/mapView.dart';
+import 'package:fs/screen/notiPage.dart';
+import 'package:fs/screen/profile.dart';
 import 'package:fs/screen/signUp.dart';
 import 'package:fs/screen/splash.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
@@ -37,7 +40,10 @@ class MyApp extends StatelessWidget {
         '/login': (context) => LoginPage(),
         '/signUp': (context) => SignUpPage(),
         '/home': (context) => HomePage(),
-        '/addForm': (context) => FoodForm(),
+        // '/addForm': (context) => FoodForm(),
+        // '/map': (context) => MapViewPage(),
+        // '/notifications': (context) => NotificationsPage(),
+        // '/profile': (context) => ProfilePage(),
       },
       // You can optionally provide a builder for a global loading indicator
       builder: (context, child) {

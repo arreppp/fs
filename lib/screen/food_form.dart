@@ -135,7 +135,7 @@ class _FoodFormState extends State<FoodForm> {
           selectedTime!.minute,
         );
 
-        await FirebaseFirestore.instance.collection('foods').add({
+        var data = {
           'name': foodNameController.text,
           'quantity': foodQuantityController.text,
           'detail': foodDetailController.text,
@@ -144,7 +144,13 @@ class _FoodFormState extends State<FoodForm> {
           'location': GeoPoint(selectedLocation!.latitude, selectedLocation!.longitude),
           'username': username,
           'email': email,
-        });
+        };
+
+        // Store data in 'foods' collection
+        await FirebaseFirestore.instance.collection('foods').add(data);
+
+        // Store data in 'history' collection
+        await FirebaseFirestore.instance.collection('history').add(data);
 
         foodNameController.clear();
         foodQuantityController.clear();
@@ -208,7 +214,10 @@ class _FoodFormState extends State<FoodForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Food Form'),
+        title: Text('Share Food'),
+        centerTitle: true, // Center the title
+        automaticallyImplyLeading: false, // Remove back button
+
       ),
       body: curLocation == null
           ? Center(child: CircularProgressIndicator())
@@ -324,3 +333,4 @@ class _FoodFormState extends State<FoodForm> {
     );
   }
 }
+

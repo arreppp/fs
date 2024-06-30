@@ -49,7 +49,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('FoodShare'),
+        title: Text('Detail'),
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {

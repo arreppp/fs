@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:fs/firebase_thingy/firebaseNoti.dart';
 import 'package:fs/screen/food_form.dart';
 import 'package:fs/screen/home.dart';
 import 'package:fs/screen/login.dart';
@@ -24,6 +25,7 @@ void main() async {
   await FirebaseAppCheck.instance.activate(
     androidProvider: AndroidProvider.debug,
    );
+  await FirebaseNoti().initNotifications();
   runApp(MyApp());
 }
 

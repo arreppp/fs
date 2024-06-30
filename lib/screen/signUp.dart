@@ -4,6 +4,7 @@ import 'package:fs/firebase_thingy/firebase_auth_services.dart';
 import 'package:fs/screen/login.dart';
 import 'package:fs/widgets/form_container_widget.dart';
 import 'package:fs/widgets/toast.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -14,6 +15,7 @@ class SignUpPage extends StatefulWidget {
 
 class _SignUpPageState extends State<SignUpPage> {
   final FirebaseAuthService _auth = FirebaseAuthService();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   TextEditingController _usernameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
@@ -34,10 +36,11 @@ class _SignUpPageState extends State<SignUpPage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text("FoodShare",style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-      ),
+        title: Text(
+          "FoodShare",
+          style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+        ),
         centerTitle: true, // Center the title
-
       ),
       body: Center(
         child: Padding(
@@ -77,9 +80,8 @@ class _SignUpPageState extends State<SignUpPage> {
                 height: 30,
               ),
               GestureDetector(
-                onTap:  (){
+                onTap: () {
                   _signUp();
-
                 },
                 child: Container(
                   width: double.infinity,
@@ -89,10 +91,15 @@ class _SignUpPageState extends State<SignUpPage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(
-                      child: isSigningUp ? CircularProgressIndicator(color: Colors.white,):Text(
+                      child: isSigningUp
+                          ? CircularProgressIndicator(
+                        color: Colors.white,
+                      )
+                          : Text(
                         "Sign Up",
                         style: TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.bold),
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold),
                       )),
                 ),
               ),
@@ -129,7 +136,6 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   void _signUp() async {
-
     setState(() {
       isSigningUp = true;
     });
@@ -140,14 +146,20 @@ class _SignUpPageState extends State<SignUpPage> {
 
     User? user = await _auth.signUpWithEmailAndPassword(email, password);
 
-    setState(() {
-      isSigningUp = false;
-    });
     if (user != null) {
+      await _firestore.collection('users').doc(user.uid).set({
+        'username': username,
+        'email': email,
+      });
+
       showToast(message: "User is successfully created");
       Navigator.pushNamed(context, "/home");
     } else {
-      showToast(message: "Some error happend");
+      showToast(message: "Some error happened");
     }
+
+    setState(() {
+      isSigningUp = false;
+    });
   }
 }

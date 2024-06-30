@@ -124,8 +124,14 @@ class _FoodFormState extends State<FoodForm> {
       User? user = FirebaseAuth.instance.currentUser;
 
       if (user != null) {
-        String? username = user.displayName;
+        String? username;
         String email = user.email!;
+
+        // Fetch the username from Firestore
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+          username = userDoc['username'];
+        }
 
         DateTime expiryDateTime = DateTime(
           selectedDate!.year,
@@ -308,7 +314,7 @@ class _FoodFormState extends State<FoodForm> {
                       ),
                       padding: EdgeInsets.all(10),
                       child: Text(
-                        _address ?? 'Pick the drop point',
+                        _address ?? 'Pick location',
                         overflow: TextOverflow.visible,
                         softWrap: true,
                       ),
@@ -325,7 +331,7 @@ class _FoodFormState extends State<FoodForm> {
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: _uploadData,
-              child: Text('Submit'),
+              child: Text('Share'),
             ),
           ],
         ),

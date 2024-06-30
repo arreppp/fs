@@ -35,6 +35,15 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     User? user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()),
+      );
+      return Scaffold(); // Or some appropriate widget to display while navigating
+    }
+
     final List<Widget> _pages = [
       StreamBuilder<QuerySnapshot>(
         stream: _stream,
@@ -72,18 +81,18 @@ class _HomePageState extends State<HomePage> {
       MapViewPage(),
       FoodForm(),
       NotificationsPage(),
-      ProfilePage(),
+      ProfilePage(userId: user.uid, email: user.email!), // Pass the userId here
     ];
 
     return Scaffold(
       appBar: _selectedIndex == 0
           ? AppBar(
-        title: Text('FoodShare', style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+        title: Text(
+          'FoodShare',
+          style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
         ),
         centerTitle: true, // Center the title
         automaticallyImplyLeading: false, // Remove back button
-
-
       )
           : null,
       body: _pages[_selectedIndex],

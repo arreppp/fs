@@ -3,11 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:fs/screen/signUp.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../firebase_thingy/firebase_auth_services.dart';
 import '../widgets/form_container_widget.dart';
 import '../widgets/toast.dart';
+import 'home.dart';
+import 'signUp.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -20,8 +21,8 @@ class _LoginPageState extends State<LoginPage> {
   bool _isSigning = false;
   final FirebaseAuthService _auth = FirebaseAuthService();
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  TextEditingController _emailController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   @override
   void dispose() {
@@ -35,10 +36,11 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text("FoodShare",style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+        title: Text(
+          "FoodShare",
+          style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
         ),
         centerTitle: true, // Center the title
-
       ),
       body: Center(
         child: Padding(
@@ -81,8 +83,11 @@ class _LoginPageState extends State<LoginPage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(
-                    child: _isSigning ? CircularProgressIndicator(
-                      color: Colors.white,) : Text(
+                    child: _isSigning
+                        ? CircularProgressIndicator(
+                      color: Colors.white,
+                    )
+                        : Text(
                       "Login",
                       style: TextStyle(
                         color: Colors.white,
@@ -92,11 +97,12 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
-              SizedBox(height: 10,),
+              SizedBox(
+                height: 10,
+              ),
               GestureDetector(
                 onTap: () {
                   _signInWithGoogle();
-
                 },
                 child: Container(
                   width: double.infinity,
@@ -109,8 +115,13 @@ class _LoginPageState extends State<LoginPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(FontAwesomeIcons.google, color: Colors.white,),
-                        SizedBox(width: 5,),
+                        Icon(
+                          FontAwesomeIcons.google,
+                          color: Colors.white,
+                        ),
+                        SizedBox(
+                          width: 5,
+                        ),
                         Text(
                           "Sign in with Google",
                           style: TextStyle(
@@ -123,12 +134,9 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
-
-
               SizedBox(
                 height: 20,
               ),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -169,48 +177,82 @@ class _LoginPageState extends State<LoginPage> {
     String email = _emailController.text;
     String password = _passwordController.text;
 
-    User? user = await _auth.signInWithEmailAndPassword(email, password);
+    try {
+      User? user = await _auth.signInWithEmailAndPassword(email, password);
 
-    setState(() {
-      _isSigning = false;
-    });
+      setState(() {
+        _isSigning = false;
+      });
 
-    if (user != null) {
-      showToast(message: "User is successfully signed in");
-      Navigator.pushNamed(context, "/home");
-    } else {
-      showToast(message: "some error occured");
+      if (user != null) {
+        showToast(message: "User is successfully signed in");
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomePage(),
+          ),
+        );
+      } else {
+        showToast(message: "Some error occurred");
+      }
+    } catch (e) {
+      setState(() {
+        _isSigning = false;
+      });
+      showToast(message: "Error: $e");
+      print(e);
     }
   }
 
-
-  _signInWithGoogle()async{
+  void _signInWithGoogle() async {
+    setState(() {
+      _isSigning = true;
+    });
 
     final GoogleSignIn _googleSignIn = GoogleSignIn();
 
     try {
-
       final GoogleSignInAccount? googleSignInAccount = await _googleSignIn.signIn();
 
-      if(googleSignInAccount != null ){
-        final GoogleSignInAuthentication googleSignInAuthentication = await
-        googleSignInAccount.authentication;
+      if (googleSignInAccount != null) {
+        final GoogleSignInAuthentication googleSignInAuthentication =
+        await googleSignInAccount.authentication;
 
         final AuthCredential credential = GoogleAuthProvider.credential(
           idToken: googleSignInAuthentication.idToken,
           accessToken: googleSignInAuthentication.accessToken,
         );
 
-        await _firebaseAuth.signInWithCredential(credential);
-        Navigator.pushNamed(context, "/home");
+        UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
+        User? user = userCredential.user;
+
+        if (user != null) {
+          // Check if the user is already in Firestore
+          DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+
+          if (!userDoc.exists) {
+            // If the user does not exist, add them to Firestore
+            await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+              'username': user.displayName,
+              'email': user.email,
+            });
+          }
+
+          showToast(message: "User is successfully signed in");
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomePage(),
+            ),
+          );
+        }
       }
-
-    }catch(e) {
-      showToast(message: "some error occured $e");
+    } catch (e) {
+      setState(() {
+        _isSigning = false;
+      });
+      showToast(message: "Some error occurred $e");
+      print(e);
     }
-
-
   }
-
-
 }

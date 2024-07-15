@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'foodDetail.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -89,6 +90,11 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _signOut() async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.of(context).pushReplacementNamed('/login'); // Assuming you have a named route for the login page
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -163,6 +169,13 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   );
                 },
+              ),
+            ),
+            SizedBox(height: 20),
+            Center(
+              child: ElevatedButton(
+                onPressed: _signOut,
+                child: Text('Sign Out'),
               ),
             ),
           ],

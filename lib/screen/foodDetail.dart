@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'locationPicker.dart'; // Import this if you're using Firestore
 
 class FoodDetailPage extends StatefulWidget {
@@ -13,6 +14,68 @@ class FoodDetailPage extends StatefulWidget {
 
 class _FoodDetailPageState extends State<FoodDetailPage> {
   bool isHoldButtonPressed = false;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  DocumentReference? holdReference; // Reference to the hold document
+
+  @override
+  void initState() {
+    super.initState();
+    _checkHoldStatus();
+  }
+
+  Future<void> _checkHoldStatus() async {
+    User? user = _auth.currentUser;
+    if (user != null) {
+      String email = user.email ?? 'No email provided';
+
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('holds')
+          .where('foodName', isEqualTo: widget.data['name'])
+          .where('user', isEqualTo: email)
+          .where('status', isEqualTo: 'held')
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        setState(() {
+          isHoldButtonPressed = true;
+          holdReference = querySnapshot.docs.first.reference;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleHoldButton() async {
+    User? user = _auth.currentUser;
+    if (user != null) {
+      String email = user.email ?? 'No email provided';
+      DateTime now = DateTime.now();
+
+      if (isHoldButtonPressed) {
+        // If the button is already pressed, release the hold and delete the document
+        if (holdReference != null) {
+          await holdReference!.delete();
+          holdReference = null;
+        }
+      } else {
+        // If the button is not pressed, hold the food and add a new document
+        DocumentReference docRef = await FirebaseFirestore.instance.collection('holds').add({
+          'foodName': widget.data['name'],
+          'time': now,
+          'user': email,
+          'status': 'held',
+        });
+        holdReference = docRef;
+      }
+
+      setState(() {
+        isHoldButtonPressed = !isHoldButtonPressed;
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('User not logged in'),
+      ));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,16 +157,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      isHoldButtonPressed = !isHoldButtonPressed;
-                      if(isHoldButtonPressed) {
-                        quantity--;
-                      } else {
-                        quantity++;
-                      }
-                    });
-                  },
+                  onPressed: _handleHoldButton,
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all(
                         isHoldButtonPressed ? Colors.red : Colors.green),

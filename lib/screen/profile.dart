@@ -19,12 +19,14 @@ class _ProfilePageState extends State<ProfilePage> {
   String email = "";
   bool isLoading = true;
   List<Map<String, dynamic>> previousSharedFood = [];
+  List<Map<String, dynamic>> previousHolds = [];
 
   @override
   void initState() {
     super.initState();
     fetchUserData();
     fetchPreviousSharedFood();
+    fetchPreviousHolds();
   }
 
   Future<void> fetchUserData() async {
@@ -87,6 +89,31 @@ class _ProfilePageState extends State<ProfilePage> {
     } catch (e) {
       print("Error fetching previous shared food: $e");
       showProfileToast(message: "Error fetching previous shared food: $e");
+    }
+  }
+
+  Future<void> fetchPreviousHolds() async {
+    try {
+      QuerySnapshot holdSnapshot = await FirebaseFirestore.instance
+          .collection('holds')
+          .where('user', isEqualTo: widget.email)
+          .where('status', isEqualTo: 'held')
+          .get();
+
+      if (holdSnapshot.docs.isNotEmpty) {
+        List<Map<String, dynamic>> holdList = holdSnapshot.docs
+            .map((doc) => doc.data() as Map<String, dynamic>)
+            .toList();
+
+        setState(() {
+          previousHolds = holdList;
+        });
+      } else {
+        showProfileToast(message: "No previous holds found.");
+      }
+    } catch (e) {
+      print("Error fetching previous holds: $e");
+      showProfileToast(message: "Error fetching previous holds: $e");
     }
   }
 
@@ -172,10 +199,60 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
             SizedBox(height: 20),
+            Text(
+              'My Holds',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 10),
+            Expanded(
+              child: ListView.builder(
+                itemCount: previousHolds.length,
+                itemBuilder: (context, index) {
+                  final hold = previousHolds[index];
+                  return Card(
+                    margin: EdgeInsets.symmetric(vertical: 8),
+                    child: ListTile(
+                      title: Text(hold['foodName']),
+                      subtitle: Text('Held at: ${hold['time'].toDate()}'),
+                      //trailing: Text('Status: ${hold['status']}'),
+                      onTap: () async {
+                        // Fetch detailed data for the food item based on its name
+                        QuerySnapshot foodSnapshot = await FirebaseFirestore.instance
+                            .collection('history')
+                            .where('name', isEqualTo: hold['foodName'])
+                            .get();
+
+                        if (foodSnapshot.docs.isNotEmpty) {
+                          // Assuming the first document is the relevant one
+                          Map<String, dynamic> foodData = foodSnapshot.docs.first.data() as Map<String, dynamic>;
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => FoodDetailPage(data: foodData),
+                            ),
+                          );
+                        } else {
+                          showProfileToast(message: "Food details not found.");
+                        }
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+            SizedBox(height: 20),
             Center(
               child: ElevatedButton(
                 onPressed: _signOut,
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white, backgroundColor: Colors.red,
+                ),
                 child: Text('Sign Out'),
+
               ),
             ),
           ],

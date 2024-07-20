@@ -225,14 +225,15 @@ class CountdownTimer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int hours = duration.inHours;
+    int days = duration.inDays;
+    int hours = duration.inHours.remainder(24);
     int minutes = duration.inMinutes.remainder(60);
     int seconds = duration.inSeconds.remainder(60);
 
     return Container(
       padding: EdgeInsets.symmetric(vertical: 5),
       child: Text(
-        'Expires in: ${hours}h ${minutes}m ${seconds}s',
+        'Expires in: ${days}d ${hours}h ${minutes}m ${seconds}s',
         style: TextStyle(color: Colors.red, fontSize: 16),
       ),
     );

@@ -113,12 +113,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Detail'),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.popUntil(context, ModalRoute.withName('/home'));
-          },
-        ),
+        automaticallyImplyLeading: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

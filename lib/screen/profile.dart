@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'SettingPage.dart';
 import 'foodDetail.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -108,8 +109,6 @@ class _ProfilePageState extends State<ProfilePage> {
         setState(() {
           previousHolds = holdList;
         });
-      } else {
-        showProfileToast(message: "No previous holds found.");
       }
     } catch (e) {
       print("Error fetching previous holds: $e");
@@ -129,6 +128,18 @@ class _ProfilePageState extends State<ProfilePage> {
         title: Text('Profile'),
         centerTitle: true,
         automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.edit),
+            onPressed: () {
+              // Navigate to the settings page
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsPage()),
+              );
+            },
+          ),
+        ],
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())

@@ -46,6 +46,10 @@ class _LocationPickerState extends State<LocationPicker> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        //title: Text('Detail'),
+        automaticallyImplyLeading: true,
+      ),
       body: sourcePosition == null
           ? Center(child: CircularProgressIndicator())
           : Stack(
@@ -65,21 +69,21 @@ class _LocationPickerState extends State<LocationPicker> {
               _controller.complete(controller);
             },
           ),
-          Positioned(
-            top: 30,
-            left: 15,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          FoodDetailPage(data: widget.data)),
-                      (route) => false,
-                );
-              },
-              child: Icon(Icons.arrow_back),
-            ),
-          ),
+          // Positioned(
+          //   top: 30,
+          //   left: 15,
+          //   child: GestureDetector(
+          //     onTap: () {
+          //       Navigator.of(context).pushAndRemoveUntil(
+          //         MaterialPageRoute(
+          //             builder: (context) =>
+          //                 FoodDetailPage(data: widget.data)),
+          //             (route) => false,
+          //       );
+          //     },
+          //     child: Icon(Icons.arrow_back),
+          //   ),
+          // ),
           Positioned(
             bottom: 10,
             right: 10,

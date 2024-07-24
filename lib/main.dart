@@ -11,6 +11,8 @@ import 'package:fs/screen/signUp.dart';
 import 'package:fs/screen/splash.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 
+final navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -24,7 +26,7 @@ void main() async {
   );
   await FirebaseAppCheck.instance.activate(
     androidProvider: AndroidProvider.debug,
-   );
+  );
   await FirebaseNoti().initNotifications();
   runApp(MyApp());
 }
@@ -33,8 +35,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Flutter Firebase',
+      initialRoute: '/',
       routes: {
         '/': (context) => SplashScreen(
           child: LoginPage(),
@@ -42,12 +46,12 @@ class MyApp extends StatelessWidget {
         '/login': (context) => LoginPage(),
         '/signUp': (context) => SignUpPage(),
         '/home': (context) => HomePage(),
-        // '/addForm': (context) => FoodForm(),
-        // '/map': (context) => MapViewPage(),
-        // '/notifications': (context) => NotificationsPage(),
-        // '/profile': (context) => ProfilePage(),
+        '/addForm': (context) => FoodForm(),
+        '/map': (context) => MapViewPage(),
+        NotificationsPage.route: (context) => NotificationsPage(),
+        //'/profile': (context) => ProfilePage(),
       },
-      // You can optionally provide a builder for a global loading indicator
+      // Optionally provide a builder for a global loading indicator
       builder: (context, child) {
         return FutureBuilder(
           future: Firebase.initializeApp(),

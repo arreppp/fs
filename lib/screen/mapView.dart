@@ -111,7 +111,7 @@ class _MapViewPageState extends State<MapViewPage> {
       body: GoogleMap(
         initialCameraPosition: CameraPosition(
           target: _initialPosition,
-          zoom: 100,
+          zoom: 70,
         ),
         markers: _markers,
         myLocationEnabled: true,

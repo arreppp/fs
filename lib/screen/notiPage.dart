@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:timeago/timeago.dart' as timeago;
-import 'package:fs/notification_storage.dart'; // Import the notification storage
+
+import 'foodDetail.dart';
 
 class NotificationsPage extends StatelessWidget {
   static const route = '/notification';
@@ -10,76 +11,62 @@ class NotificationsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Sort the notifications by timestamp in descending order
-    final sortedNotifications = List.from(notificationStorage.notifications)
-      ..sort((a, b) => b.sentTime!.compareTo(a.sentTime!));
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Notifications'),
         centerTitle: true,
       ),
-      body: ListView.builder(
-        itemCount: sortedNotifications.length,
-        itemBuilder: (context, index) {
-          final message = sortedNotifications[index];
-          final timeAgo = timeago.format(message.sentTime!);
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('notifications').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
 
-          return ListTile(
-            title: Text(message.notification?.title ?? 'No Title'),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(message.notification?.body ?? 'No Body'),
-                Text(
-                  timeAgo,
-                  style: TextStyle(color: Colors.grey),
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return Center(child: Text('No notifications available'));
+          }
+
+          final notifications = snapshot.data!.docs;
+          notifications.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
+
+          return ListView.builder(
+            itemCount: notifications.length,
+            itemBuilder: (context, index) {
+              final notification = notifications[index];
+              final title = notification['title'] ?? 'No Title';
+              final body = notification['body'] ?? 'No Body';
+              final timestamp = (notification['timestamp'] as Timestamp).toDate();
+              final timeAgo = timeago.format(timestamp);
+
+              return ListTile(
+                title: Text(title),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(body),
+                    Text(
+                      timeAgo,
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => NotificationDetailPage(message: message),
-                ),
+                // onTap: () {
+                //   Navigator.push(
+                //     context,
+                //     MaterialPageRoute(
+                //       builder: (context) => FoodDetailPage(
+                //         title: title,
+                //         body: body,
+                //         timestamp: timestamp,
+                //       ),
+                //     ),
+                //   );
+                // },
               );
             },
           );
         },
-      ),
-    );
-  }
-}
-
-class NotificationDetailPage extends StatelessWidget {
-  final RemoteMessage? message;
-
-  const NotificationDetailPage({Key? key, this.message}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Notification Detail'),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: message != null
-            ? Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Title: ${message?.notification?.title ?? 'No Title'}'),
-            SizedBox(height: 10),
-            Text('Body: ${message?.notification?.body ?? 'No Body'}'),
-            SizedBox(height: 10),
-            Text(
-              'Received: ${timeago.format(message!.sentTime!)}',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        )
-            : Text('No notification available'),
       ),
     );
   }

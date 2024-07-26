@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,6 +9,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:location/location.dart' as loc;
 import 'package:geocoder2/geocoder2.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class FoodForm extends StatefulWidget {
   @override
@@ -30,10 +32,27 @@ class _FoodFormState extends State<FoodForm> {
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
 
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  FlutterLocalNotificationsPlugin();
+
   @override
   void initState() {
     super.initState();
     getCurrentLocation();
+
+    FirebaseMessaging.instance.subscribeToTopic('new_post');
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      RemoteNotification? notification = message.notification;
+      if (notification != null) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(notification.title!),
+            content: Text(notification.body!),
+          ),
+        );
+      }
+    });
   }
 
   Future<void> getCurrentLocation() async {
@@ -157,6 +176,20 @@ class _FoodFormState extends State<FoodForm> {
 
         // Store data in 'history' collection
         await FirebaseFirestore.instance.collection('history').add(data);
+
+        FirebaseMessaging.instance.subscribeToTopic('new_post');
+
+        const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+            'high_importance_channel', 'High Importance Notifications',
+            channelDescription: 'This channel is used for important notifications',
+            importance: Importance.max,
+            priority: Priority.high,
+            showWhen: false);
+        const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+        await flutterLocalNotificationsPlugin.show(
+            0, 'New Post', 'A new post has been added by $username', platformChannelSpecifics);
 
         foodNameController.clear();
         foodQuantityController.clear();

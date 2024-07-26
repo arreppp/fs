@@ -1,26 +1,25 @@
 import 'dart:convert';
-import 'package:fs/notification_storage.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:fs/notification_storage.dart'; // Import the notification storage
 import 'package:fs/screen/notiPage.dart';
 import 'package:fs/main.dart';
 
 Future<void> handleBackgroundMessage(RemoteMessage message) async {
-  print('Title: ${message.notification?.title}');
-  print('Body: ${message.notification?.body}');
-  print('Payload: ${message.data}');
-  notificationStorage.addNotification(message); // Use singleton to manage notifications
+  print('Handling a background message: ${message.messageId}');
+  notificationStorage.addNotification(message); // Add to notification storage
 }
 
 class FirebaseNoti {
   final _firebaseMessaging = FirebaseMessaging.instance;
 
   final _androidChannel = const AndroidNotificationChannel(
-    'high_importance_channel',
-    'High Importance Notifications',
-    description: 'This channel is used for important notifications',
-    importance: Importance.defaultImportance,
+    'high_importance_channel', // id
+    'High Importance Notifications', // title
+    description: 'This channel is used for important notifications.', // description
+    importance: Importance.high,
   );
+
   final _localNotifications = FlutterLocalNotificationsPlugin();
 
   void handleMessage(RemoteMessage? message) {
@@ -57,9 +56,13 @@ class FirebaseNoti {
       badge: true,
       sound: true,
     );
+
     FirebaseMessaging.instance.getInitialMessage().then(handleMessage);
+
     FirebaseMessaging.onMessageOpenedApp.listen(handleMessage);
+
     FirebaseMessaging.onBackgroundMessage(handleBackgroundMessage);
+
     FirebaseMessaging.onMessage.listen((message) {
       final notification = message.notification;
       if (notification == null) return;
@@ -75,7 +78,7 @@ class FirebaseNoti {
             _androidChannel.id,
             _androidChannel.name,
             channelDescription: _androidChannel.description,
-            icon: '@mipmap/ic_launcher', // Use the default launcher icon
+            icon: '@mipmap/ic_launcher',
           ),
         ),
         payload: jsonEncode(message.toMap()),
@@ -86,7 +89,7 @@ class FirebaseNoti {
   Future<void> initNotifications() async {
     await _firebaseMessaging.requestPermission();
     final fCMToken = await _firebaseMessaging.getToken();
-    print('Token: $fCMToken');
+    print('FCM Token: $fCMToken');
     await initPushNotifications();
     await initLocalNotifications();
   }

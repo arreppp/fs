@@ -84,9 +84,10 @@ class _ProfilePageState extends State<ProfilePage> {
         setState(() {
           previousSharedFood = foodList;
         });
-      } else {
-        showProfileToast(message: "No previous shared food found.");
       }
+      // else {
+      //   showProfileToast(message: "No previous shared food found.");
+      // }
     } catch (e) {
       print("Error fetching previous shared food: $e");
       showProfileToast(message: "Error fetching previous shared food: $e");

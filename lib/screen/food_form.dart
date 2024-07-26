@@ -10,6 +10,7 @@ import 'package:location/location.dart' as loc;
 import 'package:geocoder2/geocoder2.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import '../widgets/form_container_widget.dart';
 
 class FoodForm extends StatefulWidget {
   @override
@@ -177,6 +178,17 @@ class _FoodFormState extends State<FoodForm> {
         // Store data in 'history' collection
         await FirebaseFirestore.instance.collection('history').add(data);
 
+        // Store notification data in 'notifications' collection
+        var notificationData = {
+          'title': 'New Post',
+          'body': 'A new post has been added by $username',
+          'timestamp': FieldValue.serverTimestamp(),
+          'userId': user.uid,
+          'foodId': data['foodId'],
+        };
+
+        await FirebaseFirestore.instance.collection('notifications').add(notificationData);
+
         FirebaseMessaging.instance.subscribeToTopic('new_post');
 
         const AndroidNotificationDetails androidPlatformChannelSpecifics =
@@ -219,7 +231,7 @@ class _FoodFormState extends State<FoodForm> {
 
   Future<void> _uploadImage() async {
     final picker = ImagePicker();
-    final pickedImage = await picker.pickImage(source: ImageSource.camera);
+    final pickedImage = await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedImage == null) return;
 
@@ -256,7 +268,6 @@ class _FoodFormState extends State<FoodForm> {
         title: Text('Share Food'),
         centerTitle: true, // Center the title
         automaticallyImplyLeading: false, // Remove back button
-
       ),
       body: curLocation == null
           ? Center(child: CircularProgressIndicator())
@@ -265,106 +276,116 @@ class _FoodFormState extends State<FoodForm> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
+            FormContainerWidget(
               controller: foodNameController,
-              decoration: InputDecoration(labelText: 'Food Name'),
+              hintText: 'Food Name',
+              labelText: 'Food Name',
             ),
-            TextField(
+            SizedBox(height: 10),
+            FormContainerWidget(
               controller: foodQuantityController,
-              decoration: InputDecoration(labelText: 'Quantity'),
-              keyboardType: TextInputType.number,
+              hintText: 'Quantity',
+              labelText: 'Quantity',
+              inputType: TextInputType.number,
             ),
-            TextField(
+            SizedBox(height: 10),
+            FormContainerWidget(
               controller: foodDetailController,
-              decoration: InputDecoration(labelText: 'Detail'),
-              maxLines: null,
+              hintText: 'Details',
+              labelText: 'Details',
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => _selectDate(context),
-              child: Text('Select Expiry Date'),
-            ),
-            ElevatedButton(
-              onPressed: () => _selectTime(context),
-              child: Text('Select Expiry Time'),
-            ),
-            SizedBox(height: 20),
-            Text(
-              selectedDate == null ? 'No Date Chosen!' : 'Picked Date: ${selectedDate!.toLocal()}'.split(' ')[0],
-            ),
-            Text(
-              selectedTime == null ? 'No Time Chosen!' : 'Picked Time: ${selectedTime!.format(context)}',
-            ),
-            SizedBox(height: 20),
-            Text('Pick Location:'),
-            SizedBox(
-              height: 250,
-              child: Stack(
-                children: [
-                  GoogleMap(
-                    myLocationEnabled: true,
-                    myLocationButtonEnabled: true,
-                    zoomControlsEnabled: false,
-                    initialCameraPosition: CameraPosition(
-                      target: curLocation!,
-                      zoom: 16,
-                    ),
-                    onCameraMove: (CameraPosition position) {
-                      if (selectedLocation != position.target) {
-                        setState(() {
-                          selectedLocation = position.target;
-                          latController.text = selectedLocation!.latitude.toString();
-                          lngController.text = selectedLocation!.longitude.toString();
-                        });
-                      }
-                    },
-                    onCameraIdle: () {
-                      getAddressFromLatLng();
-                    },
-                    onMapCreated: (GoogleMapController controller) {
-                      _controller.complete(controller);
-                    },
-                  ),
-                  Align(
-                    alignment: Alignment.center,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 35.0),
-                      child: Image.asset(
-                        'images/redpick.png',
-                        height: 35,
-                        width: 35,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 10,
-                    right: 10,
-                    left: 10,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black),
-                        color: Colors.white,
-                      ),
-                      padding: EdgeInsets.all(10),
-                      child: Text(
-                        _address ?? 'Pick location',
-                        overflow: TextOverflow.visible,
-                        softWrap: true,
-                      ),
-                    ),
-                  ),
-                ],
+            SizedBox(height: 10),
+            ElevatedButton.icon(
+              icon: Icon(Icons.camera_alt),
+              label: Text('Upload Image'),
+              onPressed: _uploadImage,
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white, backgroundColor: Colors.green, // Text color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
               ),
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _uploadImage,
-              child: Text('Upload Image'),
+            SizedBox(height: 10),
+            Container(
+              height: 200.0,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+                border: Border.all(
+                  color: Colors.grey,
+                  width: 1.0,
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10.0),
+                child: Stack(
+                  children: [
+                    GoogleMap(
+                      onMapCreated: (GoogleMapController controller) {
+                        _controller.complete(controller);
+                      },
+                      initialCameraPosition: CameraPosition(
+                        target: curLocation!,
+                        zoom: 16,
+                      ),
+                      onCameraMove: (CameraPosition position) {
+                        setState(() {
+                          selectedLocation = position.target;
+                          getAddressFromLatLng();
+                        });
+                      },
+                    ),
+                    Center(
+                      child: Icon(Icons.location_pin, size: 40, color: Colors.red),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            SizedBox(height: 20),
-            ElevatedButton(
+            if (_address != null)
+              Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  'Selected Location: $_address',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            SizedBox(height: 10),
+            ElevatedButton.icon(
+              icon: Icon(Icons.calendar_today),
+              label: Text('Select Expiry Date'),
+              onPressed: () => _selectDate(context),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white, backgroundColor: Colors.green, // Text color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+              ),
+            ),
+            SizedBox(height: 10),
+            ElevatedButton.icon(
+              icon: Icon(Icons.access_time),
+              label: Text('Select Expiry Time'),
+              onPressed: () => _selectTime(context),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white, backgroundColor: Colors.green, // Text color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+              ),
+            ),
+            SizedBox(height: 10),
+            ElevatedButton.icon(
+              icon: Icon(Icons.send),
+              label: Text('Submit'),
               onPressed: _uploadData,
-              child: Text('Share'),
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white, backgroundColor: Colors.green, // Text color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+              ),
             ),
           ],
         ),
@@ -372,4 +393,3 @@ class _FoodFormState extends State<FoodForm> {
     );
   }
 }
-

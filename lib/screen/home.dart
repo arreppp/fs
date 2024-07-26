@@ -103,7 +103,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
 class FoodCard extends StatefulWidget {
   final Map data;
   final String docId;
@@ -151,68 +150,76 @@ class _FoodCardState extends State<FoodCard> {
     String imageUrl = widget.data['image'] ?? 'https://example.com/default-image.jpg';
     String username = widget.data['username'] ?? 'Anonymous';
 
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      elevation: 3,
-      child: Column(
-        children: [
-          Container(
-            height: 150,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              image: DecorationImage(
-                fit: BoxFit.cover,
-                image: imageUrl.isNotEmpty
-                    ? NetworkImage(imageUrl)
-                    : AssetImage('assets/no_image.png') as ImageProvider,
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FoodDetailPage(
+              data: widget.data.map((key, value) => MapEntry(key.toString(), value ?? '')),
+            ),
+          ),
+        );
+      },
+      child: Card(
+        margin: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        elevation: 3,
+        child: Row(
+          children: [
+            Container(
+              height: 100,
+              width: 100,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                image: DecorationImage(
+                  fit: BoxFit.cover,
+                  image: imageUrl.isNotEmpty
+                      ? NetworkImage(imageUrl)
+                      : AssetImage('assets/no_image.png') as ImageProvider,
+                ),
               ),
             ),
-          ),
-          ListTile(
-            contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            title: Row(
-              children: [
-                Text(
-                  name,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
+            Expanded(
+              child: ListTile(
+                contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                title: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    // Text(
+                    //   'by $username',
+                    //   style: TextStyle(
+                    //     fontWeight: FontWeight.normal,
+                    //     fontSize: 16,
+                    //   ),
+                    // ),
+                  ],
                 ),
-                SizedBox(width: 8),
-                Text(
-                  'by $username',
-                  style: TextStyle(
-                      fontWeight: FontWeight.normal,
-                      fontSize: 16),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Quantity: $quantity',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    SizedBox(height: 5),
+                    CountdownTimer(duration: remainingTime),
+                  ],
                 ),
-              ],
+                trailing: Icon(Icons.arrow_forward_ios, size: 20),
+              ),
             ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Quantity: $quantity',
-                  style: TextStyle(fontSize: 16),
-                ),
-                SizedBox(height: 5),
-                CountdownTimer(duration: remainingTime),
-              ],
-            ),
-            trailing: Icon(Icons.arrow_forward_ios, size: 20),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => FoodDetailPage(
-                    data: widget.data.map((key, value) => MapEntry(key.toString(), value ?? '')),
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -233,7 +240,7 @@ class CountdownTimer extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 5),
       child: Text(
-        'Expires in: ${days}d ${hours}h ${minutes}m ${seconds}s',
+        '${days}d ${hours}h ${minutes}m ${seconds}s',
         style: TextStyle(color: Colors.red, fontSize: 16),
       ),
     );

@@ -110,6 +110,8 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
     // Parse quantity as int, default to 0 if parsing fails
     int quantity = int.tryParse(quantityString) ?? 0;
 
+    String username = widget.data['username'] ?? 'Unknown'; // Handle missing username
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Detail'),
@@ -120,13 +122,21 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            SizedBox(height: 10),
-            Text(
-              name,
-              style: TextStyle(fontSize: 20),
-            ),
             imageUrl.isNotEmpty ? Image.network(imageUrl) : Container(), // Handle empty image URL
-
+            SizedBox(height: 10),
+            Row(
+              children: [
+                Text(
+                  name,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(width: 10),
+                Text(
+                  'by $username',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ],
+            ),
             SizedBox(height: 10),
             Text(
               'Quantity: $quantity',
@@ -144,7 +154,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
             ),
             SizedBox(height: 10),
             Text(
-              'Expiry Time: $expiryTimeStr',
+              'Best Before : $expiryTimeStr',
               style: TextStyle(fontSize: 16),
             ),
             SizedBox(height: 20),

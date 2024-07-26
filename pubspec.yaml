@@ -82,6 +82,9 @@ flutter:
   assets:
     - images/pick.png
     - images/redpick.png
+    - images/fs.png
+    - images/foodiemadoodie.png
+
 
 
   # To add assets to your application, add an assets section, like this:

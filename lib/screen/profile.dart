@@ -18,6 +18,8 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   String username = "";
   String email = "";
+  String phone = ""; // Add phone variable
+
   bool isLoading = true;
   List<Map<String, dynamic>> previousSharedFood = [];
   List<Map<String, dynamic>> previousHolds = [];
@@ -39,19 +41,16 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     try {
-      print("Fetching data for userId: ${widget.userId}");
-
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(widget.userId)
           .get();
 
       if (userDoc.exists) {
-        print("User data: ${userDoc.data()}");
-
         setState(() {
           username = userDoc['username'];
           email = userDoc['email'];
+          phone = userDoc['phone'];
           isLoading = false;
         });
       } else {
@@ -64,7 +63,6 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         isLoading = false;
       });
-      print("Error fetching user data: $e");
       showProfileToast(message: "Error fetching user data: $e");
     }
   }
@@ -85,11 +83,7 @@ class _ProfilePageState extends State<ProfilePage> {
           previousSharedFood = foodList;
         });
       }
-      // else {
-      //   showProfileToast(message: "No previous shared food found.");
-      // }
     } catch (e) {
-      print("Error fetching previous shared food: $e");
       showProfileToast(message: "Error fetching previous shared food: $e");
     }
   }
@@ -98,7 +92,7 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       QuerySnapshot holdSnapshot = await FirebaseFirestore.instance
           .collection('holds')
-          .where('user', isEqualTo: widget.email)
+          .where('holder', isEqualTo: widget.email)
           .where('status', isEqualTo: 'held')
           .get();
 
@@ -112,7 +106,6 @@ class _ProfilePageState extends State<ProfilePage> {
         });
       }
     } catch (e) {
-      print("Error fetching previous holds: $e");
       showProfileToast(message: "Error fetching previous holds: $e");
     }
   }
@@ -133,7 +126,6 @@ class _ProfilePageState extends State<ProfilePage> {
           IconButton(
             icon: Icon(Icons.edit),
             onPressed: () {
-              // Navigate to the settings page
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -141,6 +133,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     userId: widget.userId,
                     currentUsername: username,
                     currentEmail: email,
+                    currentPhoneNumber: phone, // Pass phone number to SettingsPage
                   ),
                 ),
               ).then((value) {
@@ -184,6 +177,14 @@ class _ProfilePageState extends State<ProfilePage> {
                       color: Colors.white,
                     ),
                   ),
+                  SizedBox(height: 8),
+                  Text(
+                    '$phone', // Display phone number
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.white,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -211,7 +212,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => FoodDetailPage(data: food),
+                            builder: (context) =>
+                                FoodDetailPage(data: food),
                           ),
                         );
                       },
@@ -238,27 +240,31 @@ class _ProfilePageState extends State<ProfilePage> {
                     margin: EdgeInsets.symmetric(vertical: 8),
                     child: ListTile(
                       title: Text(hold['foodName']),
-                      subtitle: Text('Held at: ${hold['time'].toDate()}'),
-                      //trailing: Text('Status: ${hold['status']}'),
+                      subtitle: Text(
+                          'Held at: ${hold['time'] != null ? (hold['time'] as Timestamp).toDate().toString() : 'Unknown time'}'),
                       onTap: () async {
-                        // Fetch detailed data for the food item based on its name
-                        QuerySnapshot foodSnapshot = await FirebaseFirestore.instance
+                        QuerySnapshot foodSnapshot = await FirebaseFirestore
+                            .instance
                             .collection('history')
-                            .where('name', isEqualTo: hold['foodName'])
+                            .where('name',
+                            isEqualTo: hold['foodName'])
                             .get();
 
                         if (foodSnapshot.docs.isNotEmpty) {
-                          // Assuming the first document is the relevant one
-                          Map<String, dynamic> foodData = foodSnapshot.docs.first.data() as Map<String, dynamic>;
+                          Map<String, dynamic> foodData =
+                          foodSnapshot.docs.first.data()
+                          as Map<String, dynamic>;
 
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => FoodDetailPage(data: foodData),
+                              builder: (context) =>
+                                  FoodDetailPage(data: foodData),
                             ),
                           );
                         } else {
-                          showProfileToast(message: "Food details not found.");
+                          showProfileToast(
+                              message: "Food details not found.");
                         }
                       },
                     ),
@@ -271,10 +277,10 @@ class _ProfilePageState extends State<ProfilePage> {
               child: ElevatedButton(
                 onPressed: _signOut,
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.red,
                 ),
                 child: Text('Log Out'),
-
               ),
             ),
           ],

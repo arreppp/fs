@@ -7,11 +7,13 @@ class SettingsPage extends StatefulWidget {
   final String userId;
   final String currentUsername;
   final String currentEmail;
+  final String currentPhoneNumber;
 
   SettingsPage({
     required this.userId,
     required this.currentUsername,
     required this.currentEmail,
+    required this.currentPhoneNumber,
   });
 
   @override
@@ -21,6 +23,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   late TextEditingController _usernameController;
   late TextEditingController _emailController;
+  late TextEditingController _phoneController; // New controller for phone number
   final _formKey = GlobalKey<FormState>();
   bool isSaving = false;
 
@@ -29,12 +32,14 @@ class _SettingsPageState extends State<SettingsPage> {
     super.initState();
     _usernameController = TextEditingController(text: widget.currentUsername);
     _emailController = TextEditingController(text: widget.currentEmail);
+    _phoneController = TextEditingController(text: widget.currentPhoneNumber); // Initialize phone controller
   }
 
   @override
   void dispose() {
     _usernameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose(); // Dispose phone controller
     super.dispose();
   }
 
@@ -51,6 +56,7 @@ class _SettingsPageState extends State<SettingsPage> {
       await FirebaseFirestore.instance.collection('users').doc(widget.userId).update({
         'username': _usernameController.text,
         'email': _emailController.text,
+        'phone': _phoneController.text, // Save phone number to Firestore
       });
 
       Fluttertoast.showToast(
@@ -120,6 +126,22 @@ class _SettingsPageState extends State<SettingsPage> {
                   }
                   if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
                     return 'Please enter a valid email';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 20),
+              FormContainerWidget(
+                controller: _phoneController,
+                hintText: 'Phone Number',
+                labelText: 'Phone Number',
+                inputType: TextInputType.phone,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a phone number';
+                  }
+                  if (!RegExp(r'^\+?[0-9]{7,15}$').hasMatch(value)) {
+                    return 'Please enter a valid phone number';
                   }
                   return null;
                 },

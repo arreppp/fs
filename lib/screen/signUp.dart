@@ -21,6 +21,7 @@ class _SignUpPageState extends State<SignUpPage> {
   TextEditingController _usernameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
+  TextEditingController _phoneController = TextEditingController(); // New controller for phone number
 
   bool isSigningUp = false;
 
@@ -29,6 +30,7 @@ class _SignUpPageState extends State<SignUpPage> {
     _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _phoneController.dispose(); // Dispose phone controller
     super.dispose();
   }
 
@@ -78,6 +80,14 @@ class _SignUpPageState extends State<SignUpPage> {
                 isPasswordField: true,
               ),
               SizedBox(
+                height: 10,
+              ),
+              FormContainerWidget(
+                controller: _phoneController,
+                hintText: "Phone Number",
+                isPasswordField: false,
+              ),
+              SizedBox(
                 height: 30,
               ),
               GestureDetector(
@@ -92,16 +102,17 @@ class _SignUpPageState extends State<SignUpPage> {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(
-                      child: isSigningUp
-                          ? CircularProgressIndicator(
-                        color: Colors.white,
-                      )
-                          : Text(
-                        "Sign Up",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold),
-                      )),
+                    child: isSigningUp
+                        ? CircularProgressIndicator(
+                      color: Colors.white,
+                    )
+                        : Text(
+                      "Sign Up",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
               ),
               SizedBox(
@@ -115,24 +126,24 @@ class _SignUpPageState extends State<SignUpPage> {
                     width: 5,
                   ),
                   GestureDetector(
-                      onTap: () {
-                        Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => LoginPage()),
-                                (route) => false);
-                      },
-                      child: Text(
-                        "Login",
-                        style: TextStyle(
-                            color: Colors.blue, fontWeight: FontWeight.bold),
-                      ))
+                    onTap: () {
+                      Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => LoginPage()),
+                              (route) => false);
+                    },
+                    child: Text(
+                      "Login",
+                      style: TextStyle(
+                          color: Colors.blue, fontWeight: FontWeight.bold),
+                    ),
+                  )
                 ],
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  //Text("Forgot Password?"),
                   SizedBox(
                     width: 5,
                   ),
@@ -140,7 +151,8 @@ class _SignUpPageState extends State<SignUpPage> {
                     onTap: () {
                       Navigator.pushAndRemoveUntil(
                         context,
-                        MaterialPageRoute(builder: (context) => ForgotPasswordPage()),
+                        MaterialPageRoute(
+                            builder: (context) => ForgotPasswordPage()),
                             (route) => false,
                       );
                     },
@@ -154,7 +166,6 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                 ],
               ),
-
             ],
           ),
         ),
@@ -170,6 +181,7 @@ class _SignUpPageState extends State<SignUpPage> {
     String username = _usernameController.text;
     String email = _emailController.text;
     String password = _passwordController.text;
+    String phoneNumber = _phoneController.text; // Get phone number
 
     User? user = await _auth.signUpWithEmailAndPassword(email, password);
 
@@ -177,6 +189,7 @@ class _SignUpPageState extends State<SignUpPage> {
       await _firestore.collection('users').doc(user.uid).set({
         'username': username,
         'email': email,
+        'phone': phoneNumber,
       });
 
       showToast(message: "User is successfully created");

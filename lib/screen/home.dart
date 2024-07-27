@@ -20,7 +20,7 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   late Stream<QuerySnapshot> _stream;
   final CollectionReference _reference = FirebaseFirestore.instance.collection('foods');
-  late String currentUserUsername;
+  String? currentUserUsername;
 
   @override
   void initState() {
@@ -120,9 +120,9 @@ class _HomePageState extends State<HomePage> {
 class FoodCard extends StatefulWidget {
   final Map data;
   final String docId;
-  final String currentUserUsername;
+  final String? currentUserUsername;
 
-  FoodCard({required this.data, required this.docId, required this.currentUserUsername});
+  FoodCard({required this.data, required this.docId, this.currentUserUsername});
 
   @override
   _FoodCardState createState() => _FoodCardState();

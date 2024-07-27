@@ -16,13 +16,13 @@ class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
   bool isHoldButtonPressed = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   DocumentReference? holdReference; // Reference to the hold document
-  List<String> usernamesHoldingFood = [];
+  List<String> holders = [];
 
   @override
   void initState() {
     super.initState();
     _checkHoldStatus();
-    _getUsernamesHoldingFood();
+    _getHolders();
   }
 
   Future<void> _checkHoldStatus() async {
@@ -33,7 +33,7 @@ class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
           .collection('holds')
           .where('foodName', isEqualTo: widget.data['name'])
-          .where('user', isEqualTo: email)
+          .where('holder', isEqualTo: email)
           .where('status', isEqualTo: 'held')
           .get();
 
@@ -46,27 +46,47 @@ class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
     }
   }
 
-  Future<void> _getUsernamesHoldingFood() async {
+  Future<void> _getHolders() async {
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
         .collection('holds')
         .where('foodName', isEqualTo: widget.data['name'])
         .where('status', isEqualTo: 'held')
         .get();
 
-    List<String> usernames = querySnapshot.docs.map((doc) {
-      return doc['user'] as String? ?? 'Unknown';
+    List<String> emails = querySnapshot.docs.map((doc) {
+      return doc['holder'] as String? ?? 'Unknown';
     }).toList();
 
+    List<String> fetchedHolders = [];
+
+    for (String email in emails) {
+      String username = await _getUsernameByEmail(email);
+      fetchedHolders.add(username);
+    }
+
     setState(() {
-      usernamesHoldingFood = usernames;
+      holders = fetchedHolders;
     });
+  }
+
+  Future<String> _getUsernameByEmail(String email) async {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      return querySnapshot.docs.first['username'] ?? 'Unknown';
+    } else {
+      return 'Unknown';
+    }
   }
 
   Future<void> _handleHoldButton() async {
     User? user = _auth.currentUser;
     if (user != null) {
       String email = user.email ?? 'No email provided';
-      String username = widget.data['username'] ?? 'Unknown';
+      String username = await _getUsernameByEmail(email);
       DateTime now = DateTime.now();
 
       if (isHoldButtonPressed) {
@@ -80,8 +100,7 @@ class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
         DocumentReference docRef = await FirebaseFirestore.instance.collection('holds').add({
           'foodName': widget.data['name'],
           'time': now,
-          'user': email,
-          'username': username,
+          'holder': email,
           'status': 'held',
         });
         holdReference = docRef;
@@ -91,7 +110,7 @@ class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
         isHoldButtonPressed = !isHoldButtonPressed;
       });
 
-      _getUsernamesHoldingFood(); // Update the list of usernames holding the food
+      _getHolders(); // Update the list of holders
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('User not logged in'),
@@ -246,10 +265,10 @@ class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
             ),
             ListView.builder(
               shrinkWrap: true,
-              itemCount: usernamesHoldingFood.length,
+              itemCount: holders.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  title: Text(usernamesHoldingFood[index]),
+                  title: Text(holders[index]),
                 );
               },
             ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'locationPicker.dart'; // Import this if you're using Firestore
+import 'locationPicker.dart';
 
 class FoodDetailPage extends StatefulWidget {
   final Map<String, dynamic> data;
@@ -15,7 +15,7 @@ class FoodDetailPage extends StatefulWidget {
 class _FoodDetailPageState extends State<FoodDetailPage> {
   bool isHoldButtonPressed = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  DocumentReference? holdReference; // Reference to the hold document
+  DocumentReference? holdReference;
 
   @override
   void initState() {
@@ -31,7 +31,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
           .collection('holds')
           .where('foodName', isEqualTo: widget.data['name'])
-          .where('user', isEqualTo: email)
+          .where('holder', isEqualTo: email)
           .where('status', isEqualTo: 'held')
           .get();
 
@@ -39,6 +39,11 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
         setState(() {
           isHoldButtonPressed = true;
           holdReference = querySnapshot.docs.first.reference;
+        });
+      } else {
+        setState(() {
+          isHoldButtonPressed = false;
+          holdReference = null;
         });
       }
     }
@@ -51,13 +56,11 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
       DateTime now = DateTime.now();
 
       if (isHoldButtonPressed) {
-        // If the button is already pressed, release the hold and delete the document
         if (holdReference != null) {
           await holdReference!.delete();
           holdReference = null;
         }
       } else {
-        // If the button is not pressed, hold the food and add a new document
         DocumentReference docRef = await FirebaseFirestore.instance.collection('holds').add({
           'foodName': widget.data['name'],
           'time': now,
@@ -136,12 +139,10 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Provide default values or handle null values
     String name = widget.data['name'] ?? 'No name provided';
     String detail = widget.data['detail'] ?? 'No detail provided';
-    String imageUrl = widget.data['image'] ?? 'https://example.com/default-image.jpg'; // Provide a default image URL if image is null
+    String imageUrl = widget.data['image'] ?? 'https://example.com/default-image.jpg';
 
-    // Handle GeoPoint for location
     double? lat;
     double? lng;
     String location;
@@ -154,20 +155,16 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
       location = widget.data['location'] ?? 'No location provided';
     }
 
-    // Handle expiry time
     DateTime? expiryTime;
     String expiryTimeStr = 'No expiry time provided';
     if (widget.data['expiry_time'] != null) {
       expiryTime = (widget.data['expiry_time'] as Timestamp).toDate();
-      expiryTimeStr = '${expiryTime.toLocal()}'.split('.')[0]; // Format the expiry time
+      expiryTimeStr = '${expiryTime.toLocal()}'.split('.')[0];
     }
 
-    // Store quantity as String
     String quantityString = widget.data['quantity'] ?? '0';
-    // Parse quantity as int, default to 0 if parsing fails
     int quantity = int.tryParse(quantityString) ?? 0;
-
-    String username = widget.data['username'] ?? 'Unknown'; // Handle missing username
+    String username = widget.data['username'] ?? 'Unknown';
 
     return Scaffold(
       appBar: AppBar(
@@ -197,7 +194,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            imageUrl.isNotEmpty ? Image.network(imageUrl) : Container(), // Handle empty image URL
+            imageUrl.isNotEmpty ? Image.network(imageUrl) : Container(),
             SizedBox(height: 10),
             Row(
               children: [
@@ -251,7 +248,6 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                 ElevatedButton(
                   onPressed: () {
                     if (lat != null && lng != null) {
-                      // Navigate to LocationPicker with the destination coordinates
                       Navigator.push(
                         context,
                         MaterialPageRoute(

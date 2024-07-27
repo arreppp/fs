@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'locationPicker.dart'; // Import this if you're using Firestore
+import 'package:url_launcher/url_launcher.dart';
+
+import 'locationPicker.dart'; // Add this import for launching the call
 
 class MyFoodDetailPage extends StatefulWidget {
   final Map<String, dynamic> data;
@@ -14,36 +15,13 @@ class MyFoodDetailPage extends StatefulWidget {
 
 class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
   bool isHoldButtonPressed = false;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
   DocumentReference? holdReference; // Reference to the hold document
-  List<String> holders = [];
+  List<Map<String, String>> holders = [];
 
   @override
   void initState() {
     super.initState();
-    _checkHoldStatus();
     _getHolders();
-  }
-
-  Future<void> _checkHoldStatus() async {
-    User? user = _auth.currentUser;
-    if (user != null) {
-      String email = user.email ?? 'No email provided';
-
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('holds')
-          .where('foodName', isEqualTo: widget.data['name'])
-          .where('holder', isEqualTo: email)
-          .where('status', isEqualTo: 'held')
-          .get();
-
-      if (querySnapshot.docs.isNotEmpty) {
-        setState(() {
-          isHoldButtonPressed = true;
-          holdReference = querySnapshot.docs.first.reference;
-        });
-      }
-    }
   }
 
   Future<void> _getHolders() async {
@@ -57,11 +35,11 @@ class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
       return doc['holder'] as String? ?? 'Unknown';
     }).toList();
 
-    List<String> fetchedHolders = [];
+    List<Map<String, String>> fetchedHolders = [];
 
     for (String email in emails) {
-      String username = await _getUsernameByEmail(email);
-      fetchedHolders.add(username);
+      Map<String, String> holderInfo = await _getUserInfoByEmail(email);
+      fetchedHolders.add(holderInfo);
     }
 
     setState(() {
@@ -69,52 +47,23 @@ class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
     });
   }
 
-  Future<String> _getUsernameByEmail(String email) async {
+  Future<Map<String, String>> _getUserInfoByEmail(String email) async {
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
         .collection('users')
         .where('email', isEqualTo: email)
         .get();
 
     if (querySnapshot.docs.isNotEmpty) {
-      return querySnapshot.docs.first['username'] ?? 'Unknown';
+      var userDoc = querySnapshot.docs.first;
+      return {
+        'username': userDoc['username'] ?? 'Unknown',
+        'phone': userDoc['phone'] ?? 'Unknown',
+      };
     } else {
-      return 'Unknown';
-    }
-  }
-
-  Future<void> _handleHoldButton() async {
-    User? user = _auth.currentUser;
-    if (user != null) {
-      String email = user.email ?? 'No email provided';
-      String username = await _getUsernameByEmail(email);
-      DateTime now = DateTime.now();
-
-      if (isHoldButtonPressed) {
-        // If the button is already pressed, release the hold and delete the document
-        if (holdReference != null) {
-          await holdReference!.delete();
-          holdReference = null;
-        }
-      } else {
-        // If the button is not pressed, hold the food and add a new document
-        DocumentReference docRef = await FirebaseFirestore.instance.collection('holds').add({
-          'foodName': widget.data['name'],
-          'time': now,
-          'holder': email,
-          'status': 'held',
-        });
-        holdReference = docRef;
-      }
-
-      setState(() {
-        isHoldButtonPressed = !isHoldButtonPressed;
-      });
-
-      _getHolders(); // Update the list of holders
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('User not logged in'),
-      ));
+      return {
+        'username': 'Unknown',
+        'phone': 'Unknown',
+      };
     }
   }
 
@@ -133,6 +82,21 @@ class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Failed to delete food item: $e'),
+      ));
+    }
+  }
+
+  void _callPhoneNumber(String phoneNumber) async {
+    final Uri phoneUri = Uri(
+      scheme: 'tel',
+      path: phoneNumber,
+    );
+
+    if (await canLaunch(phoneUri.toString())) {
+      await launch(phoneUri.toString());
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Could not launch phone call'),
       ));
     }
   }
@@ -267,8 +231,24 @@ class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
               shrinkWrap: true,
               itemCount: holders.length,
               itemBuilder: (context, index) {
+                final holder = holders[index];
                 return ListTile(
-                  title: Text(holders[index]),
+                  title: Text(holder['username'] ?? 'Unknown'),
+                  subtitle: GestureDetector(
+                    onTap: () {
+                      if (holder['phone'] != 'Unknown') {
+                        _callPhoneNumber(holder['phone']!);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text('Phone number not available'),
+                        ));
+                      }
+                    },
+                    child: Text(
+                      holder['phone'] ?? 'Unknown',
+                      style: TextStyle(color: Colors.blue),
+                    ),
+                  ),
                 );
               },
             ),

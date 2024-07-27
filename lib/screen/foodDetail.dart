@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'locationPicker.dart';
 
 class FoodDetailPage extends StatefulWidget {
@@ -16,11 +17,13 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
   bool isHoldButtonPressed = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   DocumentReference? holdReference;
+  String? phoneNumber;
 
   @override
   void initState() {
     super.initState();
     _checkHoldStatus();
+    _fetchPhoneNumber();
   }
 
   Future<void> _checkHoldStatus() async {
@@ -46,6 +49,20 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
           holdReference = null;
         });
       }
+    }
+  }
+
+  Future<void> _fetchPhoneNumber() async {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('history')
+        .where('name', isEqualTo: widget.data['name'])
+        .limit(1)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      setState(() {
+        phoneNumber = querySnapshot.docs.first.get('phone');
+      });
     }
   }
 
@@ -135,6 +152,14 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
         content: Text('User not logged in'),
       ));
     }
+  }
+
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: phoneNumber,
+    );
+    await launchUrl(launchUri);
   }
 
   @override
@@ -229,10 +254,34 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
               'Best Before : $expiryTimeStr',
               style: TextStyle(fontSize: 16),
             ),
+            SizedBox(height: 10),
+            //if (phoneNumber != null)
+              // GestureDetector(
+              //   onTap: () => _makePhoneCall(phoneNumber!),
+              //   child: Text(
+              //     'Phone: $phoneNumber',
+              //     style: TextStyle(
+              //       fontSize: 16,
+              //       color: Colors.blue,
+              //       decoration: TextDecoration.underline,
+              //     ),
+              //   ),
+              // ),
             SizedBox(height: 20),
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                if (phoneNumber != null)
+                  ElevatedButton(
+                    onPressed: () => _makePhoneCall(phoneNumber!),
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(Colors.blue),
+                    ),
+                    child: Text(
+                      'Call',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
                 ElevatedButton(
                   onPressed: _handleHoldButton,
                   style: ButtonStyle(
@@ -244,7 +293,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                     style: TextStyle(color: Colors.white),
                   ),
                 ),
-                SizedBox(width: 20),
+
                 ElevatedButton(
                   onPressed: () {
                     if (lat != null && lng != null) {
@@ -264,7 +313,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                   child: Text('Navigate'),
                 ),
               ],
-            ),
+            )
           ],
         ),
       ),

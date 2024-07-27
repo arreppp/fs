@@ -21,6 +21,7 @@ class _FoodFormState extends State<FoodForm> {
   final TextEditingController foodNameController = TextEditingController();
   final TextEditingController foodQuantityController = TextEditingController();
   final TextEditingController foodDetailController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
   final TextEditingController latController = TextEditingController();
   final TextEditingController lngController = TextEditingController();
 
@@ -40,6 +41,7 @@ class _FoodFormState extends State<FoodForm> {
   void initState() {
     super.initState();
     getCurrentLocation();
+    fetchUserPhoneNumber();
 
     FirebaseMessaging.instance.subscribeToTopic('new_post');
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -95,7 +97,7 @@ class _FoodFormState extends State<FoodForm> {
         GeoData data = await Geocoder2.getDataFromCoordinates(
           latitude: curLocation!.latitude,
           longitude: curLocation!.longitude,
-          googleMapApiKey: 'AIzaSyBfOMormPiVpGpEp72CstQlYmiNomtwYU8',
+          googleMapApiKey: 'AIzaSyC-MnxKfWoxF925Ve8pHVRzNEq9HOIAh-E',
         );
         setState(() {
           _address = data.address;
@@ -106,7 +108,23 @@ class _FoodFormState extends State<FoodForm> {
     }
   }
 
-  Future<void> _selectDate(BuildContext context) async {
+  Future<void> fetchUserPhoneNumber() async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+          setState(() {
+            phoneController.text = userDoc['phone'] ?? '';
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching user phone number: $e');
+    }
+  }
+
+  Future<void> _selectDateTime(BuildContext context) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -114,22 +132,19 @@ class _FoodFormState extends State<FoodForm> {
       lastDate: DateTime(2101),
     );
 
-    if (pickedDate != null && pickedDate != selectedDate)
-      setState(() {
-        selectedDate = pickedDate;
-      });
-  }
+    if (pickedDate != null) {
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
 
-  Future<void> _selectTime(BuildContext context) async {
-    final TimeOfDay? pickedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-
-    if (pickedTime != null && pickedTime != selectedTime)
-      setState(() {
-        selectedTime = pickedTime;
-      });
+      if (pickedTime != null) {
+        setState(() {
+          selectedDate = pickedDate;
+          selectedTime = pickedTime;
+        });
+      }
+    }
   }
 
   Future<void> _uploadData() async {
@@ -170,6 +185,7 @@ class _FoodFormState extends State<FoodForm> {
           'location': GeoPoint(selectedLocation!.latitude, selectedLocation!.longitude),
           'username': username,
           'email': email,
+          'phone': phoneController.text,
         };
 
         // Store data in 'foods' collection
@@ -206,6 +222,7 @@ class _FoodFormState extends State<FoodForm> {
         foodNameController.clear();
         foodQuantityController.clear();
         foodDetailController.clear();
+        phoneController.clear();
         latController.clear();
         lngController.clear();
         setState(() {
@@ -231,8 +248,39 @@ class _FoodFormState extends State<FoodForm> {
 
   Future<void> _uploadImage() async {
     final picker = ImagePicker();
-    final pickedImage = await picker.pickImage(source: ImageSource.gallery);
 
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: Icon(Icons.photo_library),
+                title: Text('Gallery'),
+                onTap: () async {
+                  Navigator.of(context).pop();
+                  final pickedImage = await picker.pickImage(source: ImageSource.gallery);
+                  _handlePickedImage(pickedImage);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.photo_camera),
+                title: Text('Camera'),
+                onTap: () async {
+                  Navigator.of(context).pop();
+                  final pickedImage = await picker.pickImage(source: ImageSource.camera);
+                  _handlePickedImage(pickedImage);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _handlePickedImage(XFile? pickedImage) async {
     if (pickedImage == null) return;
 
     try {
@@ -265,8 +313,8 @@ class _FoodFormState extends State<FoodForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Share Food'),
-        centerTitle: true, // Center the title
+        title: Text('Add Food'),
+        centerTitle: true,
         automaticallyImplyLeading: false, // Remove back button
       ),
       body: curLocation == null
@@ -293,6 +341,13 @@ class _FoodFormState extends State<FoodForm> {
               controller: foodDetailController,
               hintText: 'Details',
               labelText: 'Details',
+            ),
+            SizedBox(height: 10),
+            FormContainerWidget(
+              controller: phoneController,
+              hintText: 'Phone Number',
+              labelText: 'Phone Number',
+              inputType: TextInputType.phone,
             ),
             SizedBox(height: 10),
             ElevatedButton.icon(
@@ -354,20 +409,8 @@ class _FoodFormState extends State<FoodForm> {
             SizedBox(height: 10),
             ElevatedButton.icon(
               icon: Icon(Icons.calendar_today),
-              label: Text('Select Expiry Date'),
-              onPressed: () => _selectDate(context),
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white, backgroundColor: Colors.green, // Text color
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-              ),
-            ),
-            SizedBox(height: 10),
-            ElevatedButton.icon(
-              icon: Icon(Icons.access_time),
-              label: Text('Select Expiry Time'),
-              onPressed: () => _selectTime(context),
+              label: Text('Select Expiry Date & Time'),
+              onPressed: () => _selectDateTime(context),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white, backgroundColor: Colors.green, // Text color
                 shape: RoundedRectangleBorder(

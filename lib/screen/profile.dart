@@ -136,8 +136,18 @@ class _ProfilePageState extends State<ProfilePage> {
               // Navigate to the settings page
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => SettingsPage()),
-              );
+                MaterialPageRoute(
+                  builder: (context) => SettingsPage(
+                    userId: widget.userId,
+                    currentUsername: username,
+                    currentEmail: email,
+                  ),
+                ),
+              ).then((value) {
+                if (value == true) {
+                  fetchUserData();
+                }
+              });
             },
           ),
         ],
@@ -263,7 +273,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white, backgroundColor: Colors.red,
                 ),
-                child: Text('Sign Out'),
+                child: Text('Log Out'),
 
               ),
             ),

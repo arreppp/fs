@@ -7,6 +7,7 @@ import 'package:fs/screen/home.dart';
 import 'package:fs/screen/login.dart';
 import 'package:fs/screen/mapView.dart';
 import 'package:fs/screen/notiPage.dart';
+import 'package:fs/screen/ForgotPassword.dart';
 import 'package:fs/screen/profile.dart';
 import 'package:fs/screen/signUp.dart';
 import 'package:fs/screen/splash.dart';
@@ -57,6 +58,7 @@ class MyApp extends StatelessWidget {
         ),
         '/login': (context) => LoginPage(),
         '/signUp': (context) => SignUpPage(),
+        '/forget-password' : (context) => ForgotPasswordPage(),
         '/home': (context) => HomePage(),
         '/addForm': (context) => FoodForm(),
         '/map': (context) => MapViewPage(),

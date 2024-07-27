@@ -7,6 +7,7 @@ import 'package:fs/screen/notiPage.dart';
 import 'package:fs/screen/profile.dart';
 import 'food_form.dart';
 import 'foodDetail.dart';
+import 'myFoodDetail.dart'; // Import MyFoodDetailPage
 import 'login.dart';
 import 'bottomNav.dart';  // Import the bottom navigation bar
 
@@ -19,11 +20,23 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   late Stream<QuerySnapshot> _stream;
   final CollectionReference _reference = FirebaseFirestore.instance.collection('foods');
+  late String currentUserUsername;
 
   @override
   void initState() {
     super.initState();
     _stream = _reference.snapshots();
+    _getCurrentUserUsername();
+  }
+
+  Future<void> _getCurrentUserUsername() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      setState(() {
+        currentUserUsername = userDoc['username'];
+      });
+    }
   }
 
   void _onItemTapped(int index) {
@@ -65,7 +78,7 @@ class _HomePageState extends State<HomePage> {
                     delegate: SliverChildBuilderDelegate(
                           (BuildContext context, int index) {
                         Map thisItem = items[index];
-                        return FoodCard(data: thisItem, docId: documents[index].id);
+                        return FoodCard(data: thisItem, docId: documents[index].id, currentUserUsername: currentUserUsername);
                       },
                       childCount: items.length,
                     ),
@@ -103,11 +116,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+
 class FoodCard extends StatefulWidget {
   final Map data;
   final String docId;
+  final String currentUserUsername;
 
-  FoodCard({required this.data, required this.docId});
+  FoodCard({required this.data, required this.docId, required this.currentUserUsername});
 
   @override
   _FoodCardState createState() => _FoodCardState();
@@ -152,14 +167,25 @@ class _FoodCardState extends State<FoodCard> {
 
     return InkWell(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FoodDetailPage(
-              data: widget.data.map((key, value) => MapEntry(key.toString(), value ?? '')),
+        if (widget.currentUserUsername == username) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MyFoodDetailPage(
+                data: widget.data.map((key, value) => MapEntry(key.toString(), value ?? '')),
+              ),
             ),
-          ),
-        );
+          );
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => FoodDetailPage(
+                data: widget.data.map((key, value) => MapEntry(key.toString(), value ?? '')),
+              ),
+            ),
+          );
+        }
       },
       child: Card(
         margin: EdgeInsets.symmetric(horizontal: 10, vertical: 6),

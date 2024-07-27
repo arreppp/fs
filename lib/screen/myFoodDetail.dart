@@ -3,24 +3,26 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'locationPicker.dart'; // Import this if you're using Firestore
 
-class FoodDetailPage extends StatefulWidget {
+class MyFoodDetailPage extends StatefulWidget {
   final Map<String, dynamic> data;
 
-  FoodDetailPage({required this.data});
+  MyFoodDetailPage({required this.data});
 
   @override
-  _FoodDetailPageState createState() => _FoodDetailPageState();
+  _MyFoodDetailPageState createState() => _MyFoodDetailPageState();
 }
 
-class _FoodDetailPageState extends State<FoodDetailPage> {
+class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
   bool isHoldButtonPressed = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   DocumentReference? holdReference; // Reference to the hold document
+  List<String> usernamesHoldingFood = [];
 
   @override
   void initState() {
     super.initState();
     _checkHoldStatus();
+    _getUsernamesHoldingFood();
   }
 
   Future<void> _checkHoldStatus() async {
@@ -44,10 +46,27 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
     }
   }
 
+  Future<void> _getUsernamesHoldingFood() async {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('holds')
+        .where('foodName', isEqualTo: widget.data['name'])
+        .where('status', isEqualTo: 'held')
+        .get();
+
+    List<String> usernames = querySnapshot.docs.map((doc) {
+      return doc['user'] as String? ?? 'Unknown';
+    }).toList();
+
+    setState(() {
+      usernamesHoldingFood = usernames;
+    });
+  }
+
   Future<void> _handleHoldButton() async {
     User? user = _auth.currentUser;
     if (user != null) {
       String email = user.email ?? 'No email provided';
+      String username = widget.data['username'] ?? 'Unknown';
       DateTime now = DateTime.now();
 
       if (isHoldButtonPressed) {
@@ -61,7 +80,8 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
         DocumentReference docRef = await FirebaseFirestore.instance.collection('holds').add({
           'foodName': widget.data['name'],
           'time': now,
-          'holder': email,
+          'user': email,
+          'username': username,
           'status': 'held',
         });
         holdReference = docRef;
@@ -70,6 +90,8 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
       setState(() {
         isHoldButtonPressed = !isHoldButtonPressed;
       });
+
+      _getUsernamesHoldingFood(); // Update the list of usernames holding the food
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('User not logged in'),
@@ -77,59 +99,21 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
     }
   }
 
-  Future<void> _reportFood() async {
-    User? user = _auth.currentUser;
-    if (user != null) {
-      TextEditingController _reasonController = TextEditingController();
+  Future<void> _handleDeleteFood() async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('foods')
+          .doc(widget.data['id']) // Assuming 'id' is a part of the data map
+          .delete();
 
-      await showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('Report Food'),
-            content: TextField(
-              controller: _reasonController,
-              decoration: InputDecoration(hintText: "Enter reason for reporting"),
-              maxLines: 3,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () async {
-                  String reason = _reasonController.text;
-                  if (reason.isNotEmpty) {
-                    DateTime now = DateTime.now();
-                    await FirebaseFirestore.instance.collection('reports').add({
-                      'reporter': user.email ?? 'Unknown',
-                      'reason': reason,
-                      'time': now,
-                      'foodName': widget.data['name'],
-                      'username': widget.data['username'] ?? 'Unknown',
-                    });
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text('Report submitted'),
-                    ));
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text('Reason cannot be empty'),
-                    ));
-                  }
-                },
-                child: Text('Submit'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('Cancel'),
-              ),
-            ],
-          );
-        },
-      );
-    } else {
+      Navigator.pop(context); // Return to the previous screen after deletion
+
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('User not logged in'),
+        content: Text('Food item deleted successfully'),
+      ));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Failed to delete food item: $e'),
       ));
     }
   }
@@ -176,19 +160,17 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
         automaticallyImplyLeading: true,
         actions: [
           PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'Report') {
-                _reportFood();
+            onSelected: (String result) {
+              if (result == 'delete') {
+                _handleDeleteFood();
               }
             },
-            itemBuilder: (BuildContext context) {
-              return {'Report'}.map((String choice) {
-                return PopupMenuItem<String>(
-                  value: choice,
-                  child: Text(choice),
-                );
-              }).toList();
-            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'delete',
+                child: Text('Delete'),
+              ),
+            ],
           ),
         ],
       ),
@@ -224,7 +206,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
             ),
             SizedBox(height: 10),
             Text(
-              'Location: $location',
+              'Coordinate: $location',
               style: TextStyle(fontSize: 16),
             ),
             SizedBox(height: 10),
@@ -236,18 +218,6 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton(
-                  onPressed: _handleHoldButton,
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(
-                        isHoldButtonPressed ? Colors.red : Colors.green),
-                  ),
-                  child: Text(
-                    isHoldButtonPressed ? 'Release' : 'Hold',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-                SizedBox(width: 20),
                 ElevatedButton(
                   onPressed: () {
                     if (lat != null && lng != null) {
@@ -268,6 +238,20 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                   child: Text('Navigate'),
                 ),
               ],
+            ),
+            SizedBox(height: 20),
+            Text(
+              'Users holding this food:',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              itemCount: usernamesHoldingFood.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(usernamesHoldingFood[index]),
+                );
+              },
             ),
           ],
         ),

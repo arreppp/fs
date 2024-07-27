@@ -25,7 +25,7 @@ class BottomNavBar extends StatelessWidget {
           label: '',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.notifications),
+          icon: Icon(Icons.inbox_sharp),
           label: '',
         ),
         BottomNavigationBarItem(

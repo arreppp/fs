@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fs/firebase_thingy/firebase_auth_services.dart';
+import 'package:fs/screen/ForgotPassword.dart';
 import 'package:fs/screen/login.dart';
 import 'package:fs/widgets/form_container_widget.dart';
 import 'package:fs/widgets/toast.dart';
@@ -127,7 +128,33 @@ class _SignUpPageState extends State<SignUpPage> {
                             color: Colors.blue, fontWeight: FontWeight.bold),
                       ))
                 ],
-              )
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  //Text("Forgot Password?"),
+                  SizedBox(
+                    width: 5,
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => ForgotPasswordPage()),
+                            (route) => false,
+                      );
+                    },
+                    child: Text(
+                      "Forgot Password",
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
             ],
           ),
         ),

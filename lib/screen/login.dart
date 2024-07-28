@@ -40,10 +40,13 @@ class _LoginPageState extends State<LoginPage> {
         title: Text(
           "FoodShare",
           style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+
         ),
         centerTitle: true,
+        backgroundColor: Color(0xFFc9cfcc),
+
       ),
-      backgroundColor: Colors.lightBlue[50],
+      backgroundColor: Color(0xFFc9cfcc),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -52,7 +55,7 @@ class _LoginPageState extends State<LoginPage> {
             children: [
               Text(
                 "Login",
-                style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 27),
               ),
               SizedBox(
                 height: 30,

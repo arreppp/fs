@@ -149,10 +149,12 @@ class _HomePageState extends State<HomePage> {
           style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        automaticallyImplyLeading: false,
+        backgroundColor: Color(0xFFc9cfcc),
       )
           : null,
       body: _pages[_selectedIndex],
+      backgroundColor: Color(0xFFc9cfcc),
+
       bottomNavigationBar: BottomNavBar(
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,

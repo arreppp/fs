@@ -3,6 +3,9 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'foodDetail.dart';
+import 'myFoodDetail.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +36,8 @@ class _MapViewPageState extends State<MapViewPage> {
   Location _location = Location();
   LatLng _initialPosition = LatLng(37.7749, -122.4194); // Default to San Francisco
   Set<Marker> _markers = {};
+  bool _mapLoaded = false;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   void initState() {
@@ -64,14 +69,17 @@ class _MapViewPageState extends State<MapViewPage> {
     LocationData _locationData = await _location.getLocation();
     setState(() {
       _initialPosition = LatLng(_locationData.latitude!, _locationData.longitude!);
+      _mapLoaded = true;
     });
 
     _location.onLocationChanged.listen((LocationData currentLocation) {
-      _mapController.animateCamera(
-        CameraUpdate.newLatLng(
-          LatLng(currentLocation.latitude!, currentLocation.longitude!),
-        ),
-      );
+      if (_mapLoaded) {
+        _mapController.animateCamera(
+          CameraUpdate.newLatLng(
+            LatLng(currentLocation.latitude!, currentLocation.longitude!),
+          ),
+        );
+      }
     });
   }
 
@@ -92,6 +100,29 @@ class _MapViewPageState extends State<MapViewPage> {
               infoWindow: InfoWindow(
                 title: data['name'] ?? 'Food Location',
                 snippet: 'Quantity: ${data['quantity']}',
+                onTap: () async {
+                  User? user = _auth.currentUser;
+                  if (user != null) {
+                    String email = user.email ?? '';
+                    String username = user.displayName ?? '';
+
+                    if (email == data['email'] && username == data['username']) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MyFoodDetailPage(data: data),
+                        ),
+                      );
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => FoodDetailPage(data: data),
+                        ),
+                      );
+                    }
+                  }
+                },
               ),
             ),
           );
@@ -105,13 +136,16 @@ class _MapViewPageState extends State<MapViewPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Map View'),
-        centerTitle: true, // Center the title
-        automaticallyImplyLeading: false, // Remove back button
+        centerTitle: true,
+        backgroundColor: Color(0xFFc9cfcc),
+
       ),
-      body: GoogleMap(
+
+      body: _mapLoaded
+          ? GoogleMap(
         initialCameraPosition: CameraPosition(
           target: _initialPosition,
-          zoom: 70,
+          zoom: 12, // Adjusted zoom level to 12 for a better map view
         ),
         markers: _markers,
         myLocationEnabled: true,
@@ -119,7 +153,8 @@ class _MapViewPageState extends State<MapViewPage> {
         onMapCreated: (GoogleMapController controller) {
           _mapController = controller;
         },
-      ),
+      )
+          : Center(child: CircularProgressIndicator()), // Show loading indicator until map is loaded
     );
   }
 }

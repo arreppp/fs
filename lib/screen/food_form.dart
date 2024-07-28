@@ -316,8 +316,9 @@ class _FoodFormState extends State<FoodForm> {
       appBar: AppBar(
         title: Text('Add Food'),
         centerTitle: true,
-        automaticallyImplyLeading: false, // Remove back button
+        backgroundColor: Color(0xFFc9cfcc),
       ),
+      backgroundColor: Color(0xFFc9cfcc),
       body: curLocation == null
           ? Center(child: CircularProgressIndicator())
           : SingleChildScrollView(

@@ -15,7 +15,11 @@ class NotificationsPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Notifications'),
         centerTitle: true,
+        backgroundColor: Color(0xFFc9cfcc),
+
       ),
+      backgroundColor: Color(0xFFc9cfcc),
+
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('notifications').snapshots(),
         builder: (context, snapshot) {

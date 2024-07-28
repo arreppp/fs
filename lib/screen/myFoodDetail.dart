@@ -149,6 +149,8 @@ class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
         title: Text('Detail'),
         centerTitle: true,
         automaticallyImplyLeading: true,
+        backgroundColor: Color(0xFFc9cfcc),
+
         actions: [
           PopupMenuButton<String>(
             onSelected: (String result) {
@@ -165,6 +167,8 @@ class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
           ),
         ],
       ),
+      backgroundColor: Color(0xFFc9cfcc),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(

@@ -149,7 +149,7 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(
         title: Text('Profile'),
         centerTitle: true,
-        automaticallyImplyLeading: false,
+        backgroundColor: Color(0xFFc9cfcc),
         actions: [
           IconButton(
             icon: Icon(Icons.edit),
@@ -173,6 +173,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
+      backgroundColor: Color(0xFFc9cfcc),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : Padding(

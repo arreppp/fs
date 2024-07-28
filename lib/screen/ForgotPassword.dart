@@ -63,6 +63,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       appBar: AppBar(
         title: Text('Forgot Password'),
         centerTitle: true,
+        backgroundColor: Color(0xFFc9cfcc),
+
         automaticallyImplyLeading: false,
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
@@ -74,6 +76,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           },
         ),
       ),
+      backgroundColor: Color(0xFFc9cfcc),
       body: isSending
           ? Center(child: CircularProgressIndicator())
           : Padding(

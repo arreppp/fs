@@ -94,7 +94,10 @@ class _SettingsPageState extends State<SettingsPage> {
         title: Text('Settings'),
         centerTitle: true,
         automaticallyImplyLeading: true,
+        backgroundColor: Color(0xFFc9cfcc),
+
       ),
+      backgroundColor: Color(0xFFc9cfcc),
       body: isSaving
           ? Center(child: CircularProgressIndicator())
           : Padding(

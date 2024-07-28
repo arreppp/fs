@@ -4,6 +4,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'SettingPage.dart';
 import 'foodDetail.dart';
+import 'myFoodDetail.dart';
 
 class ProfilePage extends StatefulWidget {
   final String userId;
@@ -79,6 +80,13 @@ class _ProfilePageState extends State<ProfilePage> {
             .map((doc) => doc.data() as Map<String, dynamic>)
             .toList();
 
+        // Sort in descending order to have the newest at the top
+        foodList.sort((a, b) {
+          Timestamp timeA = a['timestamp'] as Timestamp;
+          Timestamp timeB = b['timestamp'] as Timestamp;
+          return timeB.compareTo(timeA);
+        });
+
         setState(() {
           previousSharedFood = foodList;
         });
@@ -101,8 +109,28 @@ class _ProfilePageState extends State<ProfilePage> {
             .map((doc) => doc.data() as Map<String, dynamic>)
             .toList();
 
+        List<Map<String, dynamic>> filteredHoldList = [];
+
+        for (var hold in holdList) {
+          QuerySnapshot foodSnapshot = await FirebaseFirestore.instance
+              .collection('foods')
+              .where('name', isEqualTo: hold['foodName'])
+              .get();
+
+          if (foodSnapshot.docs.isNotEmpty) {
+            filteredHoldList.add(hold);
+          }
+        }
+
+        // Sort in ascending order to have the newest at the bottom
+        filteredHoldList.sort((a, b) {
+          Timestamp timeA = a['timestamp'] as Timestamp;
+          Timestamp timeB = b['timestamp'] as Timestamp;
+          return timeA.compareTo(timeB);
+        });
+
         setState(() {
-          previousHolds = holdList;
+          previousHolds = filteredHoldList;
         });
       }
     } catch (e) {
@@ -213,7 +241,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                FoodDetailPage(data: food),
+                                MyFoodDetailPage(data: food),
                           ),
                         );
                       },
@@ -241,11 +269,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: ListTile(
                       title: Text(hold['foodName']),
                       subtitle: Text(
-                          'Held at: ${hold['time'] != null ? (hold['time'] as Timestamp).toDate().toString() : 'Unknown time'}'),
+                          'Held at: ${hold['timestamp'] != null ? (hold['timestamp'] as Timestamp).toDate().toString() : 'Unknown time'}'),
                       onTap: () async {
                         QuerySnapshot foodSnapshot = await FirebaseFirestore
                             .instance
-                            .collection('history')
+                            .collection('foods')
                             .where('name',
                             isEqualTo: hold['foodName'])
                             .get();

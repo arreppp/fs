@@ -80,7 +80,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
       } else {
         DocumentReference docRef = await FirebaseFirestore.instance.collection('holds').add({
           'foodName': widget.data['name'],
-          'time': now,
+          'timestamp': now,
           'holder': email,
           'status': 'held',
         });

@@ -69,10 +69,25 @@ class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
 
   Future<void> _handleDeleteFood() async {
     try {
-      await FirebaseFirestore.instance
+      // Delete from 'foods' collection based on the name
+      QuerySnapshot foodsSnapshot = await FirebaseFirestore.instance
           .collection('foods')
-          .doc(widget.data['id']) // Assuming 'id' is a part of the data map
-          .delete();
+          .where('name', isEqualTo: widget.data['name'])
+          .get();
+
+      for (var doc in foodsSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      // Delete from 'history' collection based on the name
+      QuerySnapshot historySnapshot = await FirebaseFirestore.instance
+          .collection('history')
+          .where('name', isEqualTo: widget.data['name'])
+          .get();
+
+      for (var doc in historySnapshot.docs) {
+        await doc.reference.delete();
+      }
 
       Navigator.pop(context); // Return to the previous screen after deletion
 
@@ -86,19 +101,12 @@ class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
     }
   }
 
-  void _callPhoneNumber(String phoneNumber) async {
-    final Uri phoneUri = Uri(
+  Future<void> _callPhoneNumber(String phoneNumber) async {
+    final Uri launchUri = Uri(
       scheme: 'tel',
       path: phoneNumber,
     );
-
-    if (await canLaunch(phoneUri.toString())) {
-      await launch(phoneUri.toString());
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Could not launch phone call'),
-      ));
-    }
+    await launchUrl(launchUri);
   }
 
   @override
@@ -233,21 +241,27 @@ class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
               itemBuilder: (context, index) {
                 final holder = holders[index];
                 return ListTile(
-                  title: Text(holder['username'] ?? 'Unknown'),
-                  subtitle: GestureDetector(
-                    onTap: () {
-                      if (holder['phone'] != 'Unknown') {
-                        _callPhoneNumber(holder['phone']!);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text('Phone number not available'),
-                        ));
-                      }
-                    },
-                    child: Text(
-                      holder['phone'] ?? 'Unknown',
-                      style: TextStyle(color: Colors.blue),
-                    ),
+                  title: Row(
+                    children: [
+                      Expanded(
+                        child: Text(holder['username'] ?? 'Unknown'),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          if (holder['phone'] != 'Unknown') {
+                            _callPhoneNumber(holder['phone']!);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text('Phone number not available'),
+                            ));
+                          }
+                        },
+                        child: Icon(
+                          Icons.phone,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },

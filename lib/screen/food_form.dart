@@ -186,6 +186,7 @@ class _FoodFormState extends State<FoodForm> {
           'username': username,
           'email': email,
           'phone': phoneController.text,
+          'timestamp': FieldValue.serverTimestamp(), // Add timestamp here
         };
 
         // Store data in 'foods' collection
@@ -197,7 +198,7 @@ class _FoodFormState extends State<FoodForm> {
         // Store notification data in 'notifications' collection
         var notificationData = {
           'title': 'New Post',
-          'body': 'A new post has been added by $username',
+          'body': '$username shared ${foodNameController.text}  ',
           'timestamp': FieldValue.serverTimestamp(),
           'userId': user.uid,
           'foodId': data['foodId'],

@@ -7,9 +7,9 @@ import 'package:fs/screen/notiPage.dart';
 import 'package:fs/screen/profile.dart';
 import 'food_form.dart';
 import 'foodDetail.dart';
-import 'myFoodDetail.dart'; // Import MyFoodDetailPage
+import 'myFoodDetail.dart';
 import 'login.dart';
-import 'bottomNav.dart';  // Import the bottom navigation bar
+import 'bottomNav.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -21,6 +21,7 @@ class _HomePageState extends State<HomePage> {
   late Stream<QuerySnapshot> _stream;
   final CollectionReference _reference = FirebaseFirestore.instance.collection('foods');
   String? currentUserUsername;
+  String _sortOption = 'Newest';
 
   @override
   void initState() {
@@ -45,6 +46,21 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void _onSortOptionChanged(String? value) {
+    setState(() {
+      _sortOption = value!;
+    });
+  }
+
+  List<Map> _sortItems(List<Map> items) {
+    if (_sortOption == 'Newest') {
+      items.sort((a, b) => (b['timestamp'] as Timestamp).compareTo(a['timestamp'] as Timestamp));
+    } else if (_sortOption == 'Earliest Expiry') {
+      items.sort((a, b) => (a['expiry_time'] as Timestamp).compareTo(b['expiry_time'] as Timestamp));
+    }
+    return items;
+  }
+
   @override
   Widget build(BuildContext context) {
     User? user = FirebaseAuth.instance.currentUser;
@@ -54,47 +70,75 @@ class _HomePageState extends State<HomePage> {
         context,
         MaterialPageRoute(builder: (context) => LoginPage()),
       );
-      return Scaffold(); // Or some appropriate widget to display while navigating
+      return Scaffold();
     }
 
     final List<Widget> _pages = [
-      StreamBuilder<QuerySnapshot>(
-        stream: _stream,
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text('Some error occurred ${snapshot.error}'));
-          }
-
-          if (snapshot.hasData) {
-            QuerySnapshot querySnapshot = snapshot.data;
-            List<QueryDocumentSnapshot> documents = querySnapshot.docs;
-            List<Map> items = documents.map((e) => e.data() as Map).toList();
-
-            return CustomScrollView(
-              slivers: [
-                SliverPadding(
-                  padding: const EdgeInsets.all(16.0),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                          (BuildContext context, int index) {
-                        Map thisItem = items[index];
-                        return FoodCard(data: thisItem, docId: documents[index].id, currentUserUsername: currentUserUsername);
-                      },
-                      childCount: items.length,
-                    ),
+      Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: DropdownButton<String>(
+                value: _sortOption,
+                onChanged: _onSortOptionChanged,
+                items: [
+                  DropdownMenuItem(
+                    value: 'Newest',
+                    child: Text('Newest'),
                   ),
-                ),
-              ],
-            );
-          }
+                  DropdownMenuItem(
+                    value: 'Earliest Expiry',
+                    child: Text('Earliest Expiry'),
+                  ),
+                ],
+              ),
+            ),
+          ),
 
-          return Center(child: CircularProgressIndicator());
-        },
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: _stream,
+              builder: (BuildContext context, AsyncSnapshot snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text('Some error occurred ${snapshot.error}'));
+                }
+
+                if (snapshot.hasData) {
+                  QuerySnapshot querySnapshot = snapshot.data;
+                  List<QueryDocumentSnapshot> documents = querySnapshot.docs;
+                  List<Map> items = documents.map((e) => e.data() as Map).toList();
+                  items = _sortItems(items);
+
+                  return CustomScrollView(
+                    slivers: [
+                      SliverPadding(
+                        padding: const EdgeInsets.all(16.0),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                                (BuildContext context, int index) {
+                              Map thisItem = items[index];
+                              return FoodCard(data: thisItem, docId: documents[index].id, currentUserUsername: currentUserUsername);
+                            },
+                            childCount: items.length,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+
+                return Center(child: CircularProgressIndicator());
+              },
+            ),
+          ),
+        ],
       ),
       MapViewPage(),
       FoodForm(),
       NotificationsPage(),
-      ProfilePage(userId: user.uid, email: user.email!), // Pass the userId here
+      ProfilePage(userId: user.uid, email: user.email!),
     ];
 
     return Scaffold(
@@ -104,8 +148,8 @@ class _HomePageState extends State<HomePage> {
           'FoodShare',
           style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
         ),
-        centerTitle: true, // Center the title
-        automaticallyImplyLeading: false, // Remove back button
+        centerTitle: true,
+        automaticallyImplyLeading: false,
       )
           : null,
       body: _pages[_selectedIndex],
@@ -221,13 +265,6 @@ class _FoodCardState extends State<FoodCard> {
                       ),
                     ),
                     SizedBox(width: 8),
-                    // Text(
-                    //   'by $username',
-                    //   style: TextStyle(
-                    //     fontWeight: FontWeight.normal,
-                    //     fontSize: 16,
-                    //   ),
-                    // ),
                   ],
                 ),
                 subtitle: Column(

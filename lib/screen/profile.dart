@@ -207,7 +207,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    '$phone', // Display phone number
+                    '$phone',
                     style: TextStyle(
                       fontSize: 20,
                       color: Colors.white,

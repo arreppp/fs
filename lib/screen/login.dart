@@ -41,8 +41,9 @@ class _LoginPageState extends State<LoginPage> {
           "FoodShare",
           style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
         ),
-        centerTitle: true, // Center the title
+        centerTitle: true,
       ),
+      backgroundColor: Colors.lightBlue[50],
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),

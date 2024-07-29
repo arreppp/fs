@@ -175,148 +175,144 @@ class _ProfilePageState extends State<ProfilePage> {
       backgroundColor: Color(0xFFdfe6da),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: Color(0xFF819171),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    '$username',
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+          : Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Color(0xFF819171),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            '$username',
+                            style: TextStyle(
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            '$email',
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            '$phone',
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    '$email',
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    '$phone',
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 20),
-            Text(
-              'My Previous Shared',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 10),
-            Expanded(
-              child: ListView.builder(
-                itemCount: previousSharedFood.length,
-                itemBuilder: (context, index) {
-                  final food = previousSharedFood[index];
-                  return Card(
-                    margin: EdgeInsets.symmetric(vertical: 8),
-                    child: ListTile(
-                      title: Text(food['name']),
-                      subtitle: Text(food['detail']),
-                      trailing: Text('Qty: ${food['quantity']}'),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                MyFoodDetailPage(data: food),
+                    SizedBox(height: 20),
+                    ExpansionTile(
+                      title: Text(
+                        'My Previous Shared (${previousSharedFood.length})',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      children: previousSharedFood.map((food) {
+                        return Card(
+                          margin: EdgeInsets.symmetric(vertical: 8),
+                          child: ListTile(
+                            title: Text(food['name']),
+                            subtitle: Text(food['detail']),
+                            trailing: Text('Qty: ${food['quantity']}'),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      MyFoodDetailPage(data: food),
+                                ),
+                              );
+                            },
                           ),
                         );
-                      },
+                      }).toList(),
                     ),
-                  );
-                },
-              ),
-            ),
-            SizedBox(height: 20),
-            Text(
-              'My Holds',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 10),
-            Expanded(
-              child: ListView.builder(
-                itemCount: previousHolds.length,
-                itemBuilder: (context, index) {
-                  final hold = previousHolds[index];
-                  return Card(
-                    margin: EdgeInsets.symmetric(vertical: 8),
-                    child: ListTile(
-                      title: Text(hold['foodName']),
-                      subtitle: Text(
-                          'Held at: ${hold['timestamp'] != null ? (hold['timestamp'] as Timestamp).toDate().toString() : 'Unknown time'}'),
-                      onTap: () async {
-                        QuerySnapshot foodSnapshot = await FirebaseFirestore
-                            .instance
-                            .collection('foods')
-                            .where('name',
-                            isEqualTo: hold['foodName'])
-                            .get();
+                    SizedBox(height: 20),
+                    ExpansionTile(
+                      title: Text(
+                        'My Holds (${previousHolds.length})',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      children: previousHolds.map((hold) {
+                        return Card(
+                          margin: EdgeInsets.symmetric(vertical: 8),
+                          child: ListTile(
+                            title: Text(hold['foodName']),
+                            subtitle: Text(
+                                'Held at: ${hold['timestamp'] != null ? (hold['timestamp'] as Timestamp).toDate().toString() : 'Unknown time'}'),
+                            onTap: () async {
+                              QuerySnapshot foodSnapshot = await FirebaseFirestore
+                                  .instance
+                                  .collection('foods')
+                                  .where('name', isEqualTo: hold['foodName'])
+                                  .get();
 
-                        if (foodSnapshot.docs.isNotEmpty) {
-                          Map<String, dynamic> foodData =
-                          foodSnapshot.docs.first.data()
-                          as Map<String, dynamic>;
+                              if (foodSnapshot.docs.isNotEmpty) {
+                                Map<String, dynamic> foodData =
+                                foodSnapshot.docs.first.data()
+                                as Map<String, dynamic>;
 
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  FoodDetailPage(data: foodData),
-                            ),
-                          );
-                        } else {
-                          showProfileToast(
-                              message: "Food details not found.");
-                        }
-                      },
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => FoodDetailPage(data: foodData),
+                                  ),
+                                );
+                              } else {
+                                showProfileToast(message: "Food details not found.");
+                              }
+                            },
+                          ),
+                        );
+                      }).toList(),
                     ),
-                  );
-                },
-              ),
-            ),
-            SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.red, // Text color
-                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12), // Button padding
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8), // Rounded corners
-                  ),
+                    SizedBox(height: 20),
+                  ],
                 ),
-                onPressed: _signOut,
-
-                child: Text('Log Out'),
               ),
             ),
-          ],
-        ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.red, // Text color
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12), // Button padding
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8), // Rounded corners
+                ),
+              ),
+              onPressed: _signOut,
+              child: Text('Log Out'),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -33,8 +33,13 @@ class NotificationsPage extends StatelessWidget {
           final notifications = snapshot.data!.docs;
           notifications.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
 
-          return ListView.builder(
+          return ListView.separated(
             itemCount: notifications.length,
+            separatorBuilder: (context, index) => Divider(
+              color: Colors.grey, // Color of the divider line
+              thickness: 1, // Thickness of the divider line
+              height: 1, // Space around the divider
+            ),
             itemBuilder: (context, index) {
               final notification = notifications[index];
               final title = notification['title'] ?? 'No Title';

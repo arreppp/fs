@@ -147,9 +147,8 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profile'),
+        title: Text('Profile', style: TextStyle(color: Color(0xFF758467))),
         centerTitle: true,
-        backgroundColor: Color(0xFFc9cfcc),
         actions: [
           IconButton(
             icon: Icon(Icons.edit),
@@ -173,7 +172,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
-      backgroundColor: Color(0xFFc9cfcc),
+      backgroundColor: Color(0xFFdfe6da),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : Padding(
@@ -183,7 +182,7 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             Container(
               decoration: BoxDecoration(
-                color: Colors.green,
+                color: Color(0xFF819171),
                 borderRadius: BorderRadius.circular(10),
               ),
               padding: const EdgeInsets.all(16.0),

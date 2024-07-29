@@ -41,13 +41,12 @@ class _SignUpPageState extends State<SignUpPage> {
         automaticallyImplyLeading: false,
         title: Text(
           "FoodShare",
-          style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Color(0xFF758467)),
         ),
         centerTitle: true,
-        backgroundColor: Color(0xFFc9cfcc),
 
       ),
-      backgroundColor: Color(0xFFc9cfcc),
+      backgroundColor: Color(0xFFdfe6da),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),

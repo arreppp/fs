@@ -91,13 +91,12 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Settings'),
+        title: Text('Settings',style: TextStyle(color: Color(0xFF758467))),
         centerTitle: true,
         automaticallyImplyLeading: true,
-        backgroundColor: Color(0xFFc9cfcc),
 
       ),
-      backgroundColor: Color(0xFFc9cfcc),
+      backgroundColor: Color(0xFFdfe6da),
       body: isSaving
           ? Center(child: CircularProgressIndicator())
           : Padding(
@@ -153,10 +152,20 @@ class _SettingsPageState extends State<SettingsPage> {
               Spacer(),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor: Colors.green,
+                  foregroundColor: Colors.white, backgroundColor: Color(0xFF9caf88), // Text color
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12), // Button padding
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8), // Rounded corners
+                  ),
                 ),
                 onPressed: _saveChanges,
-                child: Text('Save'),
+                child: Text(
+                  'Save Changes',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ],
           ),

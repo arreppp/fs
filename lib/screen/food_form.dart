@@ -314,11 +314,11 @@ class _FoodFormState extends State<FoodForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Food'),
+        title: Text('Add Food', style: TextStyle(color: Color(0xFF758467))),
         centerTitle: true,
-        backgroundColor: Color(0xFFc9cfcc),
+        //backgroundColor: Color(0xFFc9cfcc),
       ),
-      backgroundColor: Color(0xFFc9cfcc),
+      backgroundColor: Color(0xFFdfe6da),
       body: curLocation == null
           ? Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -357,7 +357,7 @@ class _FoodFormState extends State<FoodForm> {
               label: Text('Upload Image'),
               onPressed: _uploadImage,
               style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white, backgroundColor: Colors.green, // Text color
+                foregroundColor: Colors.white, backgroundColor: Color(0xFF9caf88), // Text color
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),
@@ -414,7 +414,7 @@ class _FoodFormState extends State<FoodForm> {
               label: Text('Select Expiry Date & Time'),
               onPressed: () => _selectDateTime(context),
               style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white, backgroundColor: Colors.green, // Text color
+                foregroundColor: Colors.white, backgroundColor: Color(0xFF9caf88), // Text color
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),
@@ -426,7 +426,7 @@ class _FoodFormState extends State<FoodForm> {
               label: Text('Submit'),
               onPressed: _uploadData,
               style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white, backgroundColor: Colors.green, // Text color
+                foregroundColor: Colors.white, backgroundColor: Color(0xFF9caf88), // Text color
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),

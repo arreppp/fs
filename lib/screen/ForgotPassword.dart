@@ -61,9 +61,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Forgot Password'),
+        title: Text('Forgot Password', style: TextStyle(color: Color(0xFF758467))),
         centerTitle: true,
-        backgroundColor: Color(0xFFc9cfcc),
 
         automaticallyImplyLeading: false,
         leading: IconButton(
@@ -76,7 +75,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           },
         ),
       ),
-      backgroundColor: Color(0xFFc9cfcc),
+      backgroundColor: Color(0xFFdfe6da),
       body: isSending
           ? Center(child: CircularProgressIndicator())
           : Padding(

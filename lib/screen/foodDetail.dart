@@ -193,10 +193,9 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Detail'),
+        title: Text('Detail', style: TextStyle(color: Color(0xFF758467))),
         centerTitle: true,
         automaticallyImplyLeading: true,
-        backgroundColor: Color(0xFFc9cfcc),
         actions: [
           PopupMenuButton<String>(
             onSelected: (value) {
@@ -215,7 +214,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
           ),
         ],
       ),
-      backgroundColor: Color(0xFFc9cfcc),
+      backgroundColor: Color(0xFFdfe6da),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(

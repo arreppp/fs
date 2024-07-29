@@ -135,9 +135,8 @@ class _MapViewPageState extends State<MapViewPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Map View'),
+        title: Text('Map View', style: TextStyle(color: Color(0xFF758467))),
         centerTitle: true,
-        backgroundColor: Color(0xFFc9cfcc),
 
       ),
 

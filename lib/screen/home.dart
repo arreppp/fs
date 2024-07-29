@@ -146,14 +146,13 @@ class _HomePageState extends State<HomePage> {
           ? AppBar(
         title: Text(
           'FoodShare',
-          style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold,  color: Color(0xFF758467),),
         ),
         centerTitle: true,
-        backgroundColor: Color(0xFFc9cfcc),
       )
           : null,
       body: _pages[_selectedIndex],
-      backgroundColor: Color(0xFFc9cfcc),
+      backgroundColor: Color(0xFFdfe6da),
 
       bottomNavigationBar: BottomNavBar(
         selectedIndex: _selectedIndex,
@@ -236,6 +235,7 @@ class _FoodCardState extends State<FoodCard> {
       child: Card(
         margin: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         elevation: 3,
+        //color: Color(0xFFcbd5c0),
         child: Row(
           children: [
             Container(

@@ -185,7 +185,7 @@ class _SignUpPageState extends State<SignUpPage> {
     String password = _passwordController.text;
     String phoneNumber = _phoneController.text; // Get phone number
 
-    User? user = await _auth.signUpWithEmailAndPassword(email, password);
+    User? user = await _auth.signUpWithEmailAndPassword(email, password,username);
 
     if (user != null) {
       await _firestore.collection('users').doc(user.uid).set({

@@ -101,17 +101,24 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               ),
               SizedBox(height: 20),
               Spacer(),
-              Container(
-                width: double.infinity,
+              Center(
                 child: ElevatedButton(
-                  child: Text('Send Password Reset Email'),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white, backgroundColor: Color(0xFF9caf88), // Text color
+                    padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12), // Button padding
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8), // Rounded corners
+                    ),
+                  ),
                   onPressed: _sendPasswordResetEmail,
+
+                  child: Text('Send Email Reset Password'),
                 ),
-              ),
-            ],
+              ),            ],
           ),
         ),
       ),
     );
   }
 }
+

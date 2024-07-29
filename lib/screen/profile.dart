@@ -303,11 +303,15 @@ class _ProfilePageState extends State<ProfilePage> {
             SizedBox(height: 20),
             Center(
               child: ElevatedButton(
-                onPressed: _signOut,
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white, backgroundColor: Colors.red, // Text color
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12), // Button padding
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8), // Rounded corners
+                  ),
                 ),
+                onPressed: _signOut,
+
                 child: Text('Log Out'),
               ),
             ),

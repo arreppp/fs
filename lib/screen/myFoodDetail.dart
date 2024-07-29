@@ -173,7 +173,17 @@ class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            imageUrl.isNotEmpty ? Image.network(imageUrl) : Container(), // Handle empty image URL
+            SizedBox(
+              width: double.infinity, // Make the image take the full width
+              height: 200, // Set a fixed height for all images
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.cover, // Ensure the image covers the box while maintaining aspect ratio
+                errorBuilder: (context, error, stackTrace) {
+                  return Center(child: Text('Image not available')); // Placeholder in case of an error
+                },
+              ),
+            ),
             SizedBox(height: 10),
             Row(
               children: [
@@ -209,9 +219,13 @@ class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
               style: TextStyle(fontSize: 16),
             ),
             SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(.35),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child:
                 ElevatedButton(
                   onPressed: () {
                     if (lat != null && lng != null) {
@@ -229,9 +243,17 @@ class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
                       ));
                     }
                   },
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.black,
+                    padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12), // Button padding
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8), // Rounded corners
+                    ),
+                  ),
+
                   child: Text('Navigate'),
                 ),
-              ],
+
             ),
             SizedBox(height: 20),
             Text(
@@ -260,7 +282,7 @@ class _MyFoodDetailPageState extends State<MyFoodDetailPage> {
                           }
                         },
                         child: Icon(
-                          Icons.phone,
+                          Icons.phone_enabled_sharp,
                           color: Colors.blue,
                         ),
                       ),

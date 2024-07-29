@@ -209,6 +209,7 @@ class _FoodCardState extends State<FoodCard> {
     String detail = widget.data['detail'] ?? 'No detail provided';
     String imageUrl = widget.data['image'] ?? 'https://example.com/default-image.jpg';
     String username = widget.data['username'] ?? 'Anonymous';
+    Timestamp expiryTime = widget.data['expiry_time'];
 
     return InkWell(
       onTap: () {
@@ -277,7 +278,7 @@ class _FoodCardState extends State<FoodCard> {
                       style: TextStyle(fontSize: 16),
                     ),
                     SizedBox(height: 5),
-                    CountdownTimer(duration: remainingTime),
+                    CountdownTimer(expiryTime: expiryTime),
                   ],
                 ),
                 trailing: Icon(Icons.arrow_forward_ios, size: 20),
@@ -290,17 +291,46 @@ class _FoodCardState extends State<FoodCard> {
   }
 }
 
-class CountdownTimer extends StatelessWidget {
-  final Duration duration;
+class CountdownTimer extends StatefulWidget {
+  final Timestamp expiryTime;
 
-  CountdownTimer({required this.duration});
+  CountdownTimer({required this.expiryTime});
+
+  @override
+  _CountdownTimerState createState() => _CountdownTimerState();
+}
+
+class _CountdownTimerState extends State<CountdownTimer> {
+  late Duration remainingTime;
+  Timer? timer;
+
+  @override
+  void initState() {
+    super.initState();
+    remainingTime = widget.expiryTime.toDate().difference(DateTime.now());
+    timer = Timer.periodic(Duration(seconds: 1), (Timer t) {
+      setState(() {
+        remainingTime = widget.expiryTime.toDate().difference(DateTime.now());
+        if (remainingTime.isNegative) {
+          FirebaseFirestore.instance.collection('foods').doc(widget.expiryTime.toDate().toString()).delete();
+          timer?.cancel();
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    int days = duration.inDays;
-    int hours = duration.inHours.remainder(24);
-    int minutes = duration.inMinutes.remainder(60);
-    int seconds = duration.inSeconds.remainder(60);
+    int days = remainingTime.inDays;
+    int hours = remainingTime.inHours.remainder(24);
+    int minutes = remainingTime.inMinutes.remainder(60);
+    int seconds = remainingTime.inSeconds.remainder(60);
 
     return Container(
       padding: EdgeInsets.symmetric(vertical: 5),

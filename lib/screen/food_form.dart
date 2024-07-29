@@ -11,6 +11,7 @@ import 'package:geocoder2/geocoder2.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../widgets/form_container_widget.dart';
+import '../widgets/toast.dart';
 
 class FoodForm extends StatefulWidget {
   @override
@@ -149,9 +150,7 @@ class _FoodFormState extends State<FoodForm> {
 
   Future<void> _uploadData() async {
     if (imageUrl.isEmpty || selectedLocation == null || selectedDate == null || selectedTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Please upload an image, select a location, date, and time'),
-      ));
+      showToast(message: 'Please upload an image, select a location, date, and time');
       return;
     }
 
@@ -198,7 +197,7 @@ class _FoodFormState extends State<FoodForm> {
         // Store notification data in 'notifications' collection
         var notificationData = {
           'title': 'New Post',
-          'body': '$username shared ${foodNameController.text}  ',
+          'body': '$username shared ${foodNameController.text}',
           'timestamp': FieldValue.serverTimestamp(),
           'userId': user.uid,
           'foodId': data['foodId'],
@@ -231,19 +230,38 @@ class _FoodFormState extends State<FoodForm> {
           selectedTime = null;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Food added successfully'),
-        ));
+        showToast(message: 'Food added successfully');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('User not logged in'),
-        ));
+        showToast(message: 'User not logged in');
       }
     } catch (error) {
       print('Error uploading food data: $error');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Failed to upload food data'),
-      ));
+      showToast(message: 'Failed to upload food data');
+    }
+  }
+
+  Future<void> _handlePickedImage(XFile? pickedImage) async {
+    if (pickedImage == null) return;
+
+    try {
+      final file = File(pickedImage.path);
+      final fileName = DateTime.now().millisecondsSinceEpoch.toString();
+
+      final storageRef = FirebaseStorage.instance.ref().child('images/$fileName.jpg');
+
+      final uploadTask = storageRef.putFile(file);
+
+      final snapshot = await uploadTask.whenComplete(() {});
+      final imageUrl = await snapshot.ref.getDownloadURL();
+
+      setState(() {
+        this.imageUrl = imageUrl;
+      });
+
+      showToast(message: 'Image uploaded successfully');
+    } catch (error) {
+      print('Error uploading image: $error');
+      showToast(message: 'Failed to upload image');
     }
   }
 
@@ -279,35 +297,6 @@ class _FoodFormState extends State<FoodForm> {
         );
       },
     );
-  }
-
-  Future<void> _handlePickedImage(XFile? pickedImage) async {
-    if (pickedImage == null) return;
-
-    try {
-      final file = File(pickedImage.path);
-      final fileName = DateTime.now().millisecondsSinceEpoch.toString();
-
-      final storageRef = FirebaseStorage.instance.ref().child('images/$fileName.jpg');
-
-      final uploadTask = storageRef.putFile(file);
-
-      final snapshot = await uploadTask.whenComplete(() {});
-      final imageUrl = await snapshot.ref.getDownloadURL();
-
-      setState(() {
-        this.imageUrl = imageUrl;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Image uploaded successfully'),
-      ));
-    } catch (error) {
-      print('Error uploading image: $error');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Failed to upload image'),
-      ));
-    }
   }
 
   @override
@@ -423,7 +412,7 @@ class _FoodFormState extends State<FoodForm> {
             SizedBox(height: 10),
             ElevatedButton.icon(
               icon: Icon(Icons.send),
-              label: Text('Submit'),
+              label: Text('Share'),
               onPressed: _uploadData,
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white, backgroundColor: Color(0xFF9caf88), // Text color

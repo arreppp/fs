@@ -220,7 +220,17 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            imageUrl.isNotEmpty ? Image.network(imageUrl) : Container(),
+            SizedBox(
+              width: double.infinity, // Make the image take the full width
+              height: 200, // Set a fixed height for all images
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.cover, // Ensure the image covers the box while maintaining aspect ratio
+                errorBuilder: (context, error, stackTrace) {
+                  return Center(child: Text('Image not available')); // Placeholder in case of an error
+                },
+              ),
+            ),
             SizedBox(height: 10),
             Row(
               children: [
@@ -269,49 +279,79 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
               //   ),
               // ),
             SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Column(
               children: [
                 if (phoneNumber != null)
-                  ElevatedButton(
-                    onPressed: () => _makePhoneCall(phoneNumber!),
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(Colors.blue),
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withOpacity(.35),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Text(
-                      'Call',
-                      style: TextStyle(color: Colors.white),
+                    child: ElevatedButton(
+                      onPressed: () => _makePhoneCall(phoneNumber!),
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.blue,
+                        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text('Call'),
                     ),
                   ),
-                ElevatedButton(
-                  onPressed: _handleHoldButton,
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(
-                        isHoldButtonPressed ? Colors.red : Colors.green),
+                SizedBox(height: 10),
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(.35),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text(
-                    isHoldButtonPressed ? 'Release' : 'Hold',
-                    style: TextStyle(color: Colors.white),
+                  child: ElevatedButton(
+                    onPressed: _handleHoldButton,
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: isHoldButtonPressed ? Colors.red : Colors.green,
+                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(isHoldButtonPressed ? 'Release' : 'Hold'),
                   ),
                 ),
-
-                ElevatedButton(
-                  onPressed: () {
-                    if (lat != null && lng != null) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              LocationPicker(lat!, lng!, data: widget.data),
-                        ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text('Location data is not available'),
-                      ));
-                    }
-                  },
-                  child: Text('Navigate'),
+                SizedBox(height: 10),
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(.35),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (lat != null && lng != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LocationPicker(lat!, lng!, data: widget.data),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text('Location data is not available'),
+                        ));
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.black,
+                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text('Navigate'),
+                  ),
                 ),
               ],
             )

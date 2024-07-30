@@ -47,7 +47,6 @@ class _LocationPickerState extends State<LocationPicker> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        //title: Text('Detail'),
         automaticallyImplyLeading: true,
       ),
       body: sourcePosition == null
@@ -69,21 +68,6 @@ class _LocationPickerState extends State<LocationPicker> {
               _controller.complete(controller);
             },
           ),
-          // Positioned(
-          //   top: 30,
-          //   left: 15,
-          //   child: GestureDetector(
-          //     onTap: () {
-          //       Navigator.of(context).pushAndRemoveUntil(
-          //         MaterialPageRoute(
-          //             builder: (context) =>
-          //                 FoodDetailPage(data: widget.data)),
-          //             (route) => false,
-          //       );
-          //     },
-          //     child: Icon(Icons.arrow_back),
-          //   ),
-          // ),
           Positioned(
             bottom: 10,
             right: 10,
@@ -102,7 +86,7 @@ class _LocationPickerState extends State<LocationPicker> {
                   ),
                   onPressed: () async {
                     await launchUrl(Uri.parse(
-                      'google.navigation:q=${widget.lat},${widget.lng}&key=AIzaSyBfOMormPiVpGpEp72CstQlYmiNomtwYU8',
+                      'google.navigation:q=${widget.lat},${widget.lng}&key=AIzaSyC-MnxKfWoxF925Ve8pHVRzNEq9HOIAh-E',
                     ));
                   },
                 ),
@@ -118,54 +102,48 @@ class _LocationPickerState extends State<LocationPicker> {
     final GoogleMapController controller = await _controller.future;
     location.changeSettings(accuracy: loc.LocationAccuracy.high);
     _currentPosition = await location.getLocation();
-    curLocation = LatLng(
-        _currentPosition!.latitude!, _currentPosition!.longitude!);
-    locationSubscription =
-        location.onLocationChanged.listen((loc.LocationData currentLocation) {
-          controller.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
-            target: LatLng(currentLocation.latitude!, currentLocation.longitude!),
-            zoom: 16,
-          )));
+    curLocation = LatLng(_currentPosition!.latitude!, _currentPosition!.longitude!);
+    locationSubscription = location.onLocationChanged.listen((loc.LocationData currentLocation) {
+      controller.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(
+        target: LatLng(currentLocation.latitude!, currentLocation.longitude!),
+        zoom: 16,
+      )));
 
-          controller.showMarkerInfoWindow(MarkerId(sourcePosition!.markerId.value));
-          setState(() {
-            curLocation = LatLng(
-                currentLocation.latitude!, currentLocation.longitude!);
-            sourcePosition = Marker(
-              markerId: MarkerId(currentLocation.toString()),
-              icon:
-              BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-              position:
-              LatLng(currentLocation.latitude!, currentLocation.longitude!),
-              infoWindow: InfoWindow(
-                title:
-                '${double.parse((getDistance(LatLng(widget.lat, widget.lng)).toStringAsFixed(2)))} km',
-              ),
-              onTap: () {
-                print('marker tapped');
-              },
-            );
-          });
-          getDirections(LatLng(widget.lat, widget.lng));
-        });
+      setState(() {
+        curLocation = LatLng(currentLocation.latitude!, currentLocation.longitude!);
+        sourcePosition = Marker(
+          markerId: MarkerId(currentLocation.toString()),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          position: LatLng(currentLocation.latitude!, currentLocation.longitude!),
+          infoWindow: InfoWindow(
+            title: '${double.parse((getDistance(LatLng(widget.lat, widget.lng)).toStringAsFixed(2)))} km',
+          ),
+          onTap: () {
+            print('marker tapped');
+          },
+        );
+      });
+      getDirections(LatLng(widget.lat, widget.lng));
+    });
   }
 
   getDirections(LatLng dst) async {
     List<LatLng> polylineCoordinates = [];
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-      'AIzaSyBfOMormPiVpGpEp72CstQlYmiNomtwYU8',
+      'AIzaSyC-MnxKfWoxF925Ve8pHVRzNEq9HOIAh-E',
       PointLatLng(curLocation.latitude, curLocation.longitude),
       PointLatLng(dst.latitude, dst.longitude),
       travelMode: TravelMode.driving,
     );
+
     if (result.points.isNotEmpty) {
       result.points.forEach((PointLatLng point) {
         polylineCoordinates.add(LatLng(point.latitude, point.longitude));
       });
+      addPolyLine(polylineCoordinates);
     } else {
-      print(result.errorMessage);
+      print('Error fetching directions: ${result.errorMessage}');
     }
-    addPolyLine(polylineCoordinates);
   }
 
   addPolyLine(List<LatLng> polylineCoordinates) {
@@ -176,8 +154,9 @@ class _LocationPickerState extends State<LocationPicker> {
       points: polylineCoordinates,
       width: 5,
     );
-    polylines[id] = polyline;
-    setState(() {});
+    setState(() {
+      polylines[id] = polyline;
+    });
   }
 
   double calculateDistance(lat1, lon1, lat2, lon2) {
@@ -203,8 +182,7 @@ class _LocationPickerState extends State<LocationPicker> {
       sourcePosition = Marker(
         markerId: MarkerId('source'),
         position: curLocation,
-        icon:
-        BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
       );
       destinationPosition = Marker(
         markerId: MarkerId('destination'),

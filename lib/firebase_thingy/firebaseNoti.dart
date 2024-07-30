@@ -34,7 +34,7 @@ class FirebaseNoti {
   }
 
   Future initLocalNotifications() async {
-    const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const android = AndroidInitializationSettings('@mipmap/fsygnoti');
     const settings = InitializationSettings(android: android);
 
     await _localNotifications.initialize(
@@ -78,7 +78,7 @@ class FirebaseNoti {
             _androidChannel.id,
             _androidChannel.name,
             channelDescription: _androidChannel.description,
-            icon: '@mipmap/ic_launcher',
+            icon: '@mipmap/fsygnoti',
           ),
         ),
         payload: jsonEncode(message.toMap()),

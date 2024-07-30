@@ -104,7 +104,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               Center(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white, backgroundColor: Color(0xFF9caf88), // Text color
+                    foregroundColor: Colors.white, backgroundColor: Colors.blue, // Text color
                     padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12), // Button padding
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8), // Rounded corners

@@ -16,9 +16,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'fcm_service.dart'; // Import the new FCM service
 
 final navigatorKey = GlobalKey<NavigatorState>();
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-FlutterLocalNotificationsPlugin();
-
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,7 +42,18 @@ void main() async {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    FirebaseMessaging.instance.subscribeToTopic('new_post');
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -53,19 +62,15 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Firebase',
       initialRoute: '/',
       routes: {
-        '/': (context) => LoginPage(
-          //child: LoginPage(),
-        ),
+        '/': (context) => LoginPage(),
         '/login': (context) => LoginPage(),
         '/signUp': (context) => SignUpPage(),
-        '/forget-password' : (context) => ForgotPasswordPage(),
+        '/forget-password': (context) => ForgotPasswordPage(),
         '/home': (context) => HomePage(),
         '/addForm': (context) => FoodForm(),
         '/map': (context) => MapViewPage(),
         NotificationsPage.route: (context) => NotificationsPage(),
-        //'/profile': (context) => ProfilePage(),
       },
-      // Optionally provide a builder for a global loading indicator
       builder: (context, child) {
         return FutureBuilder(
           future: Firebase.initializeApp(),
@@ -87,16 +92,16 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 Future<void> showNotification(RemoteMessage message) async {
-  const AndroidNotificationDetails androidPlatformChannelSpecifics =
-  AndroidNotificationDetails(
-      'high_importance_channel', 'High Importance Notifications',
-      channelDescription: 'This channel is used for important notifications',
-      importance: Importance.max,
-      priority: Priority.high,
-      showWhen: false);
-  const NotificationDetails platformChannelSpecifics =
-  NotificationDetails(android: androidPlatformChannelSpecifics);
+  const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
+    'high_importance_channel', 'High Importance Notifications',
+    channelDescription: 'This channel is used for important notifications',
+    importance: Importance.max,
+    priority: Priority.high,
+    showWhen: false,
+  );
+  const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
   await flutterLocalNotificationsPlugin.show(
-      0, message.notification?.title, message.notification?.body, platformChannelSpecifics,
-      payload: 'item x');
+    0, message.notification?.title, message.notification?.body, platformChannelSpecifics,
+    payload: 'item x',
+  );
 }

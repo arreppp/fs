@@ -96,7 +96,6 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: _stream,
@@ -153,7 +152,6 @@ class _HomePageState extends State<HomePage> {
           : null,
       body: _pages[_selectedIndex],
       backgroundColor: Color(0xFFdfe6da),
-
       bottomNavigationBar: BottomNavBar(
         selectedIndex: _selectedIndex,
         onItemTapped: _onItemTapped,
@@ -236,7 +234,6 @@ class _FoodCardState extends State<FoodCard> {
       child: Card(
         margin: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         elevation: 3,
-        //color: Color(0xFFcbd5c0),
         child: Row(
           children: [
             Container(
@@ -278,7 +275,13 @@ class _FoodCardState extends State<FoodCard> {
                       style: TextStyle(fontSize: 16),
                     ),
                     SizedBox(height: 5),
+
                     CountdownTimer(expiryTime: expiryTime),
+                    Text(
+                      'by: $username',
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                    SizedBox(height: 5),
                   ],
                 ),
                 trailing: Icon(Icons.arrow_forward_ios, size: 20),

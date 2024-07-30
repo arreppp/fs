@@ -9,7 +9,7 @@ exports.sendNotificationOnNewPost = functions.firestore
         const payload = {
             notification: {
                 title: 'New Post',
-                body: `A new post has been added by ${data.username}`,
+                body: `$username shared ${foodNameController.text}`,
             },
             topic: 'new_post',
         };

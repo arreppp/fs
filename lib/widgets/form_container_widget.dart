@@ -1,10 +1,6 @@
-
-
 import 'package:flutter/material.dart';
 
-
 class FormContainerWidget extends StatefulWidget {
-
   final TextEditingController? controller;
   final Key? fieldKey;
   final bool? isPasswordField;
@@ -26,18 +22,15 @@ class FormContainerWidget extends StatefulWidget {
     this.onSaved,
     this.validator,
     this.onFieldSubmitted,
-    this.inputType
+    this.inputType,
   });
-
 
   @override
   _FormContainerWidgetState createState() => new _FormContainerWidgetState();
 }
 
 class _FormContainerWidgetState extends State<FormContainerWidget> {
-
   bool _obscureText = true;
-
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +38,7 @@ class _FormContainerWidgetState extends State<FormContainerWidget> {
       width: double.infinity,
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(.35),
+        color: Colors.white, // Set the container background color to white
         borderRadius: BorderRadius.circular(10),
       ),
       child: new TextFormField(
@@ -53,13 +46,14 @@ class _FormContainerWidgetState extends State<FormContainerWidget> {
         controller: widget.controller,
         keyboardType: widget.inputType,
         key: widget.fieldKey,
-        obscureText: widget.isPasswordField == true? _obscureText : false,
+        obscureText: widget.isPasswordField == true ? _obscureText : false,
         onSaved: widget.onSaved,
         validator: widget.validator,
         onFieldSubmitted: widget.onFieldSubmitted,
         decoration: new InputDecoration(
           border: InputBorder.none,
           filled: true,
+          fillColor: Colors.white, // Ensure the form field itself is white
           hintText: widget.hintText,
           hintStyle: TextStyle(color: Colors.black45),
           suffixIcon: new GestureDetector(
@@ -68,8 +62,12 @@ class _FormContainerWidgetState extends State<FormContainerWidget> {
                 _obscureText = !_obscureText;
               });
             },
-            child:
-            widget.isPasswordField==true? Icon(_obscureText ? Icons.visibility_off : Icons.visibility, color: _obscureText == false ? Colors.blue : Colors.grey,) : Text(""),
+            child: widget.isPasswordField == true
+                ? Icon(
+              _obscureText ? Icons.visibility_off : Icons.visibility,
+              color: _obscureText == false ? Colors.blue : Colors.grey,
+            )
+                : Text(""),
           ),
         ),
       ),

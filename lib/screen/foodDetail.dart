@@ -18,12 +18,16 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   DocumentReference? holdReference;
   String? phoneNumber;
+  List<Map<String, String>> holders = [];
+
 
   @override
   void initState() {
     super.initState();
     _checkHoldStatus();
     _fetchPhoneNumber();
+    _getHolders();
+
   }
 
   Future<void> _checkHoldStatus() async {
@@ -66,6 +70,54 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
     }
   }
 
+  Future<void> _getHolders() async {
+    int quantity = int.tryParse(widget.data['quantity'] ?? '0') ?? 0;
+
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('holds')
+        .where('foodName', isEqualTo: widget.data['name'])
+        .where('status', isEqualTo: 'held')
+        .limit(quantity)
+        .get();
+
+    List<String> emails = querySnapshot.docs.map((doc) {
+      return doc['holder'] as String? ?? 'Unknown';
+    }).toList();
+
+    List<Map<String, String>> fetchedHolders = [];
+
+    for (String email in emails) {
+      Map<String, String> holderInfo = await _getUserInfoByEmail(email);
+      fetchedHolders.add(holderInfo);
+    }
+
+    setState(() {
+      holders = fetchedHolders;
+    });
+  }
+
+  Future<Map<String, String>> _getUserInfoByEmail(String email) async {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      var userDoc = querySnapshot.docs.first;
+      return {
+        'username': userDoc['username'] ?? 'Unknown',
+        'phone': userDoc['phone'] ?? 'Unknown',
+      };
+    } else {
+      return {
+        'username': 'Unknown',
+        'phone': 'Unknown',
+      };
+    }
+  }
+
+
+
   Future<void> _handleHoldButton() async {
     User? user = _auth.currentUser;
     if (user != null) {
@@ -90,13 +142,14 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
       setState(() {
         isHoldButtonPressed = !isHoldButtonPressed;
       });
+
+      _getHolders(); // Update holders list
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('User not logged in'),
       ));
     }
   }
-
   Future<void> _reportFood() async {
     User? user = _auth.currentUser;
     if (user != null) {
@@ -267,17 +320,17 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
             ),
             SizedBox(height: 10),
             //if (phoneNumber != null)
-              // GestureDetector(
-              //   onTap: () => _makePhoneCall(phoneNumber!),
-              //   child: Text(
-              //     'Phone: $phoneNumber',
-              //     style: TextStyle(
-              //       fontSize: 16,
-              //       color: Colors.blue,
-              //       decoration: TextDecoration.underline,
-              //     ),
-              //   ),
-              // ),
+            // GestureDetector(
+            //   onTap: () => _makePhoneCall(phoneNumber!),
+            //   child: Text(
+            //     'Phone: $phoneNumber',
+            //     style: TextStyle(
+            //       fontSize: 16,
+            //       color: Colors.blue,
+            //       decoration: TextDecoration.underline,
+            //     ),
+            //   ),
+            // ),
             SizedBox(height: 20),
             Column(
               children: [
@@ -353,6 +406,16 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                     child: Text('Navigate'),
                   ),
                 ),
+                SizedBox(height: 20),
+                Text(
+                  'Current Holders:',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 10),
+                for (var holder in holders)
+                  ListTile(
+                    title: Text(holder['username'] ?? 'Unknown'),
+                  ),
               ],
             )
           ],
@@ -361,3 +424,4 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
     );
   }
 }
+

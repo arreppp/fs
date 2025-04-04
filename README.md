@@ -25,7 +25,7 @@ Initially launched in **Jasin, Melaka**, with plans to expand statewide and even
 ## 🧰 Tech Stack
 
 - **Flutter** – Cross-platform UI development
-- **Firebase** – Authentication, Firestore (database and notifications),Notification, Storage, and Cloud Functions
+- **Firebase** – Authentication, Firestore (database and notifications), Storage, and Cloud Functions
 - **Google Maps API** – Location and navigation features
 - **Dart** – Programming language for Flutter
 

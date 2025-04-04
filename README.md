@@ -1,16 +1,42 @@
-# fs
+# 🍽️ FoodShare
 
-A new Flutter project.
+**FoodShare** is a Flutter-based mobile application built to reduce food waste, address food insecurity, and promote community involvement. The app allows users to share surplus food with nearby individuals in need — bridging the gap between excess and necessity.
 
-## Getting Started
+## 📱 Features
 
-This project is a starting point for a Flutter application.
+- 📦 **Submit Food**: Users can add food items with details including name, description, quantity, location, expiry date, and image.
+- 🗺️ **Map View**: Browse shared food items on an interactive Google Map. Tap on markers to view item details.
+- 📄 **Food Details**: View detailed information of a food item and take action:
+  - ✅ Hold or release the item.
+  - ⚠️ Report inappropriate content.
+  - 📞 Call the donor.
+  - 📍 Navigate to pickup location.
+- 👤 **User Dashboard**:
+  - Manage your shared food.
+  - View who’s currently holding your items.
+- 🔔 **Notifications**:
+  - Get notified when users interact with your posts.
+  - Notifications are implemented using **Firebase Firestore** for real-time delivery and tracking.
 
-A few resources to get you started if this is your first Flutter project:
+## 🌍 Project Scope
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Initially launched in **Jasin, Melaka**, with plans to expand statewide and eventually nationwide. The app encourages sustainability and community-driven solutions to hunger and food waste.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 🧰 Tech Stack
+
+- **Flutter** – Cross-platform UI development
+- **Firebase** – Authentication, Firestore (database and notifications), Storage, and Cloud Functions
+- **Google Maps API** – Location and navigation features
+- **Dart** – Programming language for Flutter
+
+## 🔐 Authentication
+
+- Firebase Email/Password authentication
+- User identification is based on email addresses (not UID)
+
+## 📦 Setup Instructions
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/foodshare.git
+   cd foodshare
